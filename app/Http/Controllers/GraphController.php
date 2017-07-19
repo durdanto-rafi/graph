@@ -24,13 +24,13 @@ class GraphController extends Controller
                                             @previousEventActionNumber = 4
                                             AND b.event_action_number = 1
                                         ) THEN
-                                            'F'
+                                            'D'
                                         WHEN (
                                             @previousEventActionNumber = 1
                                             AND @prePreviousEventActionNumber = 4
                                             AND b.event_action_number = 1
                                         ) THEN
-                                            'F'
+                                            'D'
                                         END
                                     ) AS state,
                                     b.event_number,
@@ -66,32 +66,29 @@ class GraphController extends Controller
                                     AND b.speed_number = 0
                                 )");
             return $data;
-            
         });
-        dd($logs);
+        //dd($logs);
         
 
+        $duration = $this->getDuration($logs);
+        //dd($duration);
+
         // Group By history from Log
-        $duration = 0;               
         $histories = array();
         foreach($logs as $log)
         { 
-            $histories[$log->history_number][] = $log;
-            if($duration == 0)
+            if($log->state != 'D')
             {
-                $duration =  $log->duration;
+                $histories[$log->history_number][] = $log;
             }
         }
 
-        //dd($duration);
+        //dd(json_encode($histories));
 
-        for($i = 0; $i < $duration; $i++)
+        foreach($histories as $history)
         {
-
+            dd($history);
         }
-
-
-        
     }
 
     /**
@@ -158,5 +155,29 @@ class GraphController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    private function getDuration($logs)
+    {
+        $durations = array();
+        foreach($logs as $log)
+        { 
+            if($log->state != 'D')
+            {
+                $durations[$log->duration][] = $log;
+            }
+        }
+
+        $maxValue = 0;
+        $maxKey = 0;
+        foreach ($durations as $key => $duration)
+        {
+            if($maxValue < count($duration))
+            {
+                 $maxValue = count($duration);
+                 $maxKey = $key;
+            }
+        }       
+        return $maxKey;
     }
 }
