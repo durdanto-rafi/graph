@@ -13,42 +13,63 @@ class GraphController extends Controller
      */
     public function index()
     {
-        $logs = DB::select("SELECT
-                                b.event_number,
-                                b.history_number,
-                                FLOOR(a.duration / 1000) duration,
-                                FLOOR(b.progress_time / 1000) progress_time,
-                                FLOOR(b.position / 1000) position,
-                                b.event_action_number,
-                                b.speed_number
-                            FROM
-                                log_school_contents_history_student a
-                            INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
-                            WHERE
-                                a.school_contents_number = 5533
-                            AND a.contents_download_datetime BETWEEN '2016-03-01 0:00:00'
-                            AND '2016-08-31 0:00:00'
-                            AND a.history_upload_datetime IS NOT NULL
-                            AND a.duration IS NOT NULL
-                            AND a.player3_code IS NULL
-                            AND b.event_action_number <> 2
-                            AND b.event_action_number <> 3
-                            AND b.event_action_number <> 4
-                            AND ! (
-                                b.event_action_number = 1
-                                AND b.position = a.duration
-                            )
-                            AND ! (
-                                b.event_action_number = 1
-                                AND b.position = 0
-                            )
-                            AND ! (
-                                b.progress_time = 0
-                                AND b.position = 0
-                                AND b.event_action_number = 0
-                            )");
-
+        $logs = DB::transaction(function()
+        {
+            DB::statement("SET @previousEventActionNumber = NULL");
+            DB::statement("SET @prePreviousEventActionNumber = NULL");
+            $data = DB::select("SELECT
+                                    (
+                                        CASE
+                                        WHEN (
+                                            @previousEventActionNumber = 4
+                                            AND b.event_action_number = 1
+                                        ) THEN
+                                            'F'
+                                        WHEN (
+                                            @previousEventActionNumber = 1
+                                            AND @prePreviousEventActionNumber = 4
+                                            AND b.event_action_number = 1
+                                        ) THEN
+                                            'F'
+                                        END
+                                    ) AS state,
+                                    b.event_number,
+                                    b.history_number,
+                                    FLOOR(a.duration / 1000) duration,
+                                    FLOOR(b.progress_time / 1000) progress_time,
+                                    FLOOR(b.position / 1000) position,
+                                    b.event_action_number,
+                                    b.speed_number,
+                                    -- Flagging Auto playback
+                                    @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
+                                    @previousEventActionNumber := b.event_action_number No_Need
+                                FROM
+                                    log_school_contents_history_student a
+                                INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
+                                WHERE
+                                    a.school_contents_number = 5533
+                                AND a.contents_download_datetime BETWEEN '2016-03-01 0:00:00'
+                                AND '2016-08-31 0:00:00'
+                                AND a.history_upload_datetime IS NOT NULL
+                                AND a.duration IS NOT NULL
+                                AND a.player3_code IS NULL
+                                AND b.event_action_number <> 3  
+                                -- Start point 
+                                AND ! (
+                                    b.progress_time = 0
+                                    AND b.position = 0
+                                    AND b.event_action_number = 0
+                                ) 
+                                -- Changing position in pause mode 
+                                AND ! (
+                                    b.event_action_number = 1
+                                    AND b.speed_number = 0
+                                )");
+            return $data;
+            
+        });
         dd($logs);
+        
 
         // Group By history from Log
         $duration = 0;               
