@@ -82,33 +82,69 @@ class GraphController extends Controller
 
             if(count($logByDuration) == 1)
             {
+                $durationInSecond = array();
+                for($i = 0; $i <= array_keys($logByDuration)[0]; $i++)
+                {
+                    $durationInSecond[$i] = 0;
+                }
+                //dd($durationInSecond);
+
                 $events = array_values($logByDuration);
+
                 // Group By history from Events
-                $histories = array();
+                $previousEvent = null;
                 foreach($events[0] as $event)
                 { 
-                    $histories[$event->history_number][] = $event;
+                    $previousEvent = new $event;
+                    $previousEvent->position = 0;
+                    // Pause
+                    if($event->event_action_number == 2 && $event->speed_number == 0)
+                    {
+                        for($i = $previousEvent->position; $i <= $event->position; $i++)
+                        {
+                            $value = $durationInSecond[$i];
+                            $durationInSecond[$i] = $value + 1;
+                        }
+                        
+                    }
+
+                    // Forward/Rewind
+                    else if($event->event_action_number == 1)
+                    {
+                        if($previousEvent->event_action_number == 2 && $event->speed_number == 10)
+                        {
+                            for($i = $previousEvent; $i <= $event->position; $i++)
+                            {
+                                $value = $durationInSecond[$i];
+                                $durationInSecond[$i] = $value + 1;
+                            }
+                        }
+                        
+                    }
+
+                    // Self Stop
+                    else if($event->event_action_number == 2 && $event->speed_number == 0)
+                    {
+                        for($i = $previousEvent; $i <= $event->position; $i++)
+                        {
+                            $value = $durationInSecond[$i];
+                            $durationInSecond[$i] = $value + 1;
+                        }
+                    }
+
+                    // Exit
+                    else if($event->event_action_number == 2 && $event->speed_number == 0)
+                    {
+                        for($i = $previousEvent; $i <= $event->position; $i++)
+                        {
+                            $value = $durationInSecond[$i];
+                            $durationInSecond[$i] = $value + 1;
+                        }
+                    }
+                    $previousEvent = $event;
                 }
-                dd($histories);
+               
             }
-        }
-            
-
-        // Group By history from Log
-        $histories = array();
-        foreach($logs as $log)
-        { 
-            if($log->state != 'D')
-            {
-                $histories[$log->history_number][] = $log;
-            }
-        }
-
-        //dd(json_encode($histories));
-
-        foreach($histories as $history)
-        {
-            //dd($history);
         }
     }
 
@@ -201,14 +237,33 @@ class GraphController extends Controller
 
         // Adjusting bug data calculating with original duration
         $durations = array();
+        $previousLog = null;
         foreach($logs as $log)
         { 
-            if($log->state != 'D')
-            {   
-                $this->fixDuration($maxKey, $log);
-                $durations[$log->duration][] = $log;
+            if($previousLog == null)
+            {
+                $previousLog = $log;
+                continue;
+            }
+
+            else
+            {
+                if($log->state != 'D')
+                {   
+                    if($previousLog->event_action_number == 1 && $log->event_action_number == 1 && $previousLog->state == null)
+                    {
+                        $previousLog->state = $log->event_number;
+                        $log->state = $log->event_number;
+                        //dd($log);
+                    }
+                    $this->fixDuration($maxKey, $log);
+                    $durations[$log->duration][] = $log;
+                    $previousLog = $log;
+                }
             }
         }
+
+        dd(json_encode($durations));
       
         return $durations;
     }
