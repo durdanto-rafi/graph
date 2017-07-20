@@ -26,13 +26,13 @@ class GraphController extends Controller
                                                 @previousEventActionNumber = 4
                                                 AND b.event_action_number = 1
                                             ) THEN
-                                                'D'
+                                                'F'
                                             WHEN (
                                                 @previousEventActionNumber = 1
                                                 AND @prePreviousEventActionNumber = 4
                                                 AND b.event_action_number = 1
                                             ) THEN
-                                                'D'
+                                                'F'
                                             END
                                         ) AS state,
                                         b.event_number,
@@ -42,7 +42,6 @@ class GraphController extends Controller
                                         FLOOR(b.position / 1000) position,
                                         b.event_action_number,
                                         b.speed_number,
-                                        -- Flagging Auto playback
                                         @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
                                         @previousEventActionNumber := b.event_action_number No_Need
                                     FROM
@@ -50,19 +49,12 @@ class GraphController extends Controller
                                     INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
                                     WHERE
                                         a.school_contents_number = 5533
-
                                     AND a.contents_download_datetime BETWEEN '2016-03-01 0:00:00'
                                     AND '2016-08-31 0:00:00'
                                     AND a.history_upload_datetime IS NOT NULL
                                     AND a.duration IS NOT NULL
                                     AND a.player3_code IS NULL
-                                    AND b.event_action_number <> 3 
-                                    -- Start point 
-                                    AND ! (
-                                        b.progress_time = 0
-                                        AND b.position = 0
-                                        AND b.event_action_number = 0
-                                    ) 
+                                    AND b.event_action_number <> 3 -- Auto playback 
                                     -- Changing position in pause mode 
                                     AND ! (
                                         b.event_action_number = 1
@@ -93,55 +85,34 @@ class GraphController extends Controller
 
                 // Group By history from Events
                 $previousEvent = null;
-                foreach($events[0] as $event)
+                $logCount = count($events[0]);
+                for($i = 0; $i < $logCount; $i++)
                 { 
-                    $previousEvent = new $event;
-                    $previousEvent->position = 0;
+                    if($previousEvent == null)
+                    {
+                        $previousEvent = $events[0][$i];
+                        continue;
+                    }
+                        
                     // Pause
-                    if($event->event_action_number == 2 && $event->speed_number == 0)
+                    if(($previousEvent->event_action_number == 0 && $previousEvent->speed_number == 10) || 
+                            ($previousEvent->event_action_number == 2 && $previousEvent->speed_number == 10) || 
+                            ($previousEvent->event_action_number == 1 && $previousEvent->event_number ==  $previousEvent->state))
                     {
-                        for($i = $previousEvent->position; $i <= $event->position; $i++)
+                        //dd(11);
+                        for($j = $previousEvent->position; $j <= $events[0][$i]->position; $j++)
                         {
-                            $value = $durationInSecond[$i];
-                            $durationInSecond[$i] = $value + 1;
+                            echo $j;
+                            $value = $durationInSecond[$j];
+                            $durationInSecond[$j] = $value + 1;
                         }
                         
                     }
+                    $previousEvent = $events[0][$i];
 
-                    // Forward/Rewind
-                    else if($event->event_action_number == 1)
-                    {
-                        if($previousEvent->event_action_number == 2 && $event->speed_number == 10)
-                        {
-                            for($i = $previousEvent; $i <= $event->position; $i++)
-                            {
-                                $value = $durationInSecond[$i];
-                                $durationInSecond[$i] = $value + 1;
-                            }
-                        }
-                        
-                    }
-
-                    // Self Stop
-                    else if($event->event_action_number == 2 && $event->speed_number == 0)
-                    {
-                        for($i = $previousEvent; $i <= $event->position; $i++)
-                        {
-                            $value = $durationInSecond[$i];
-                            $durationInSecond[$i] = $value + 1;
-                        }
-                    }
-
-                    // Exit
-                    else if($event->event_action_number == 2 && $event->speed_number == 0)
-                    {
-                        for($i = $previousEvent; $i <= $event->position; $i++)
-                        {
-                            $value = $durationInSecond[$i];
-                            $durationInSecond[$i] = $value + 1;
-                        }
-                    }
-                    $previousEvent = $event;
+                    if($i == 3)
+                        dd($durationInSecond);
+                    
                 }
                
             }
@@ -278,4 +249,5 @@ class GraphController extends Controller
 
         return $log;
     }
+
 }
