@@ -15,63 +15,84 @@ class GraphController extends Controller
     {
         $logs = DB::transaction(function()
         {
-            DB::statement("SET @previousEventActionNumber = NULL");
-            DB::statement("SET @prePreviousEventActionNumber = NULL");
-            $data = DB::select("SELECT
-                                    (
-                                        CASE
-                                        WHEN (
-                                            @previousEventActionNumber = 4
-                                            AND b.event_action_number = 1
-                                        ) THEN
-                                            'D'
-                                        WHEN (
-                                            @previousEventActionNumber = 1
-                                            AND @prePreviousEventActionNumber = 4
-                                            AND b.event_action_number = 1
-                                        ) THEN
-                                            'D'
-                                        END
-                                    ) AS state,
-                                    b.event_number,
-                                    b.history_number,
-                                    FLOOR(a.duration / 1000) duration,
-                                    FLOOR(b.progress_time / 1000) progress_time,
-                                    FLOOR(b.position / 1000) position,
-                                    b.event_action_number,
-                                    b.speed_number,
-                                    -- Flagging Auto playback
-                                    @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
-                                    @previousEventActionNumber := b.event_action_number No_Need
-                                FROM
-                                    log_school_contents_history_student a
-                                INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
-                                WHERE
-                                    a.school_contents_number = 5533
-                                AND a.contents_download_datetime BETWEEN '2016-03-01 0:00:00'
-                                AND '2016-08-31 0:00:00'
-                                AND a.history_upload_datetime IS NOT NULL
-                                AND a.duration IS NOT NULL
-                                AND a.player3_code IS NULL
-                                AND b.event_action_number <> 3  
-                                -- Start point 
-                                AND ! (
-                                    b.progress_time = 0
-                                    AND b.position = 0
-                                    AND b.event_action_number = 0
-                                ) 
-                                -- Changing position in pause mode 
-                                AND ! (
-                                    b.event_action_number = 1
-                                    AND b.speed_number = 0
-                                )");
-            return $data;
-        });
-        //dd($logs);
-        
+            try 
+            {
+                DB::statement("SET @previousEventActionNumber = NULL");
+                DB::statement("SET @prePreviousEventActionNumber = NULL");
+                $data = DB::select("SELECT
+                                        (
+                                            CASE
+                                            WHEN (
+                                                @previousEventActionNumber = 4
+                                                AND b.event_action_number = 1
+                                            ) THEN
+                                                'D'
+                                            WHEN (
+                                                @previousEventActionNumber = 1
+                                                AND @prePreviousEventActionNumber = 4
+                                                AND b.event_action_number = 1
+                                            ) THEN
+                                                'D'
+                                            END
+                                        ) AS state,
+                                        b.event_number,
+                                        b.history_number,
+                                        FLOOR(a.duration / 1000) duration,
+                                        FLOOR(b.progress_time / 1000) progress_time,
+                                        FLOOR(b.position / 1000) position,
+                                        b.event_action_number,
+                                        b.speed_number,
+                                        -- Flagging Auto playback
+                                        @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
+                                        @previousEventActionNumber := b.event_action_number No_Need
+                                    FROM
+                                        log_school_contents_history_student a
+                                    INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
+                                    WHERE
+                                        a.school_contents_number = 5533
 
-        $duration = $this->getDuration($logs);
-        //dd($duration);
+                                    AND a.contents_download_datetime BETWEEN '2016-03-01 0:00:00'
+                                    AND '2016-08-31 0:00:00'
+                                    AND a.history_upload_datetime IS NOT NULL
+                                    AND a.duration IS NOT NULL
+                                    AND a.player3_code IS NULL
+                                    AND b.event_action_number <> 3 
+                                    -- Start point 
+                                    AND ! (
+                                        b.progress_time = 0
+                                        AND b.position = 0
+                                        AND b.event_action_number = 0
+                                    ) 
+                                    -- Changing position in pause mode 
+                                    AND ! (
+                                        b.event_action_number = 1
+                                        AND b.speed_number = 0
+                                    )");
+                return $data;
+
+            } catch (\Exception $e) {
+                DB::rollback();
+                return null;
+            }
+        });
+        
+        if($logs != null)
+        {
+            $logByDuration = $this->getDuration($logs);
+
+            if(count($logByDuration) == 1)
+            {
+                $events = array_values($logByDuration);
+                // Group By history from Events
+                $histories = array();
+                foreach($events[0] as $event)
+                { 
+                    $histories[$event->history_number][] = $event;
+                }
+                dd($histories);
+            }
+        }
+            
 
         // Group By history from Log
         $histories = array();
@@ -87,7 +108,7 @@ class GraphController extends Controller
 
         foreach($histories as $history)
         {
-            dd($history);
+            //dd($history);
         }
     }
 
@@ -159,15 +180,14 @@ class GraphController extends Controller
 
     private function getDuration($logs)
     {
+        // Group By Durations (BUG)
         $durations = array();
         foreach($logs as $log)
         { 
-            if($log->state != 'D')
-            {
-                $durations[$log->duration][] = $log;
-            }
+            $durations[$log->duration][] = $log;
         }
 
+        // Getting Max used duration
         $maxValue = 0;
         $maxKey = 0;
         foreach ($durations as $key => $duration)
@@ -177,7 +197,30 @@ class GraphController extends Controller
                  $maxValue = count($duration);
                  $maxKey = $key;
             }
-        }       
-        return $maxKey;
+        }
+
+        // Adjusting bug data calculating with original duration
+        $durations = array();
+        foreach($logs as $log)
+        { 
+            if($log->state != 'D')
+            {   
+                $this->fixDuration($maxKey, $log);
+                $durations[$log->duration][] = $log;
+            }
+        }
+      
+        return $durations;
+    }
+
+    private function fixDuration($realDuration, $log)
+    {
+        $calculateData = ($realDuration / $log->duration);
+
+        $log->duration = $calculateData * $log->duration;
+        $log->progress_time = $calculateData * $log->progress_time;
+        $log->position = $calculateData * $log->position;
+
+        return $log;
     }
 }
