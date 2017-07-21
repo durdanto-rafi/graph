@@ -67,15 +67,18 @@ class GraphController extends Controller
                 return null;
             }
         });
-        
+
+        //dd(json_encode($logs));
         if($logs != null)
         {
             $logByDuration = $this->getDuration($logs);
+            //dd(json_encode($logByDuration));
 
             if(count($logByDuration) == 1)
             {
                 $durationInSecond = array();
-                for($i = 0; $i <= array_keys($logByDuration)[0]; $i++)
+                $duration = array_keys($logByDuration)[0];
+                for($i = 0; $i <= $duration; $i++)
                 {
                     $durationInSecond[$i] = 0;
                 }
@@ -83,37 +86,50 @@ class GraphController extends Controller
 
                 $events = array_values($logByDuration);
 
-                // Group By history from Events
+                // Looping through logs and calculate in second
                 $previousEvent = null;
                 $logCount = count($events[0]);
                 for($i = 0; $i < $logCount; $i++)
-                { 
+                {
+                    if($events[0][$i]->history_number != 31347)
+                        continue; 
+                    
+                    // Checking for 1st time
                     if($previousEvent == null)
                     {
                         $previousEvent = $events[0][$i];
                         continue;
                     }
+
+                    // Ignoring same position click
+                    if($previousEvent->position == $events[0][$i]->position)
+                    {
+                        continue;
+                    }
+
+                    // Play again checking
+                    if($previousEvent->event_action_number == 4 && $events[0][$i]->event_action_number != 255)
+                    {
+                        $previousEvent->event_action_number = 0;
+                    }
                         
-                    // Pause
-                    if(($previousEvent->event_action_number == 0 && $previousEvent->speed_number == 10) || 
-                            ($previousEvent->event_action_number == 2 && $previousEvent->speed_number == 10) || 
+                    // Checking for play start points
+                    if(($previousEvent->event_action_number == 0) || ($previousEvent->event_action_number == 2 && $previousEvent->speed_number == 10) || 
                             ($previousEvent->event_action_number == 1 && $previousEvent->event_number ==  $previousEvent->state))
                     {
                         //dd(11);
                         for($j = $previousEvent->position; $j <= $events[0][$i]->position; $j++)
                         {
-                            echo $j;
+                            echo $j.' ';
                             $value = $durationInSecond[$j];
                             $durationInSecond[$j] = $value + 1;
                         }
                         
                     }
                     $previousEvent = $events[0][$i];
-
-                    if($i == 3)
-                        dd($durationInSecond);
-                    
                 }
+
+                dd($durationInSecond);
                
             }
         }
@@ -194,6 +210,8 @@ class GraphController extends Controller
             $durations[$log->duration][] = $log;
         }
 
+        //dd(json_encode($durations));
+
         // Getting Max used duration
         $maxValue = 0;
         $maxKey = 0;
@@ -213,7 +231,7 @@ class GraphController extends Controller
         { 
             if($previousLog == null)
             {
-                $previousLog = $log;
+                $durations[$log->duration][] = $previousLog = $log;
                 continue;
             }
 
@@ -234,7 +252,7 @@ class GraphController extends Controller
             }
         }
 
-        dd(json_encode($durations));
+        //dd(json_encode($durations));
       
         return $durations;
     }
