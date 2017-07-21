@@ -91,19 +91,10 @@ class GraphController extends Controller
                 $logCount = count($events[0]);
                 for($i = 0; $i < $logCount; $i++)
                 {
-                    if($events[0][$i]->history_number != 31347)
-                        continue; 
-                    
                     // Checking for 1st time
                     if($previousEvent == null)
                     {
                         $previousEvent = $events[0][$i];
-                        continue;
-                    }
-
-                    // Ignoring same position click
-                    if($previousEvent->position == $events[0][$i]->position)
-                    {
                         continue;
                     }
 
@@ -118,7 +109,7 @@ class GraphController extends Controller
                             ($previousEvent->event_action_number == 1 && $previousEvent->event_number ==  $previousEvent->state))
                     {
                         //dd(11);
-                        for($j = $previousEvent->position; $j <= $events[0][$i]->position; $j++)
+                        for($j = $previousEvent->position + 1; $j <= $events[0][$i]->position; $j++)
                         {
                             echo $j.' ';
                             $value = $durationInSecond[$j];
