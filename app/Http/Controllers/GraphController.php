@@ -252,9 +252,9 @@ class GraphController extends Controller
     {
         $calculateData = ($realDuration / $log->duration);
 
-        $log->duration = $calculateData * $log->duration;
-        $log->progress_time = $calculateData * $log->progress_time;
-        $log->position = $calculateData * $log->position;
+        $log->duration = floor($calculateData * $log->duration);
+        $log->progress_time = floor($calculateData * $log->progress_time);
+        $log->position = floor($calculateData * $log->position);
 
         return $log;
     }
