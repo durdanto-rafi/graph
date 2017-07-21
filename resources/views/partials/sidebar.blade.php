@@ -6,7 +6,7 @@
         <ul class="sidebar-menu">
             <li class="header">MAIN OPTION</li>
             <li class="treeview {{ Request::is('answer') ? 'active' : '' }}">
-                <a href="{{ route('answer.index') }}">
+                <a href="#">
                     <i i class="fa fa-check-square-o"></i> <span>Answer</span>
                     <span class="pull-right-container">
                 </span>

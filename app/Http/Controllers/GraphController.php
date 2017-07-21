@@ -68,6 +68,8 @@ class GraphController extends Controller
             }
         });
 
+
+        $durationInSecond = array();
         //dd(json_encode($logs));
         if($logs != null)
         {
@@ -76,9 +78,9 @@ class GraphController extends Controller
 
             if(count($logByDuration) == 1)
             {
-                $durationInSecond = array();
+                
                 $duration = array_keys($logByDuration)[0];
-                for($i = 0; $i <= $duration; $i++)
+                for($i = 0; $i < $duration; $i++)
                 {
                     $durationInSecond[$i] = 0;
                 }
@@ -91,6 +93,9 @@ class GraphController extends Controller
                 $logCount = count($events[0]);
                 for($i = 0; $i < $logCount; $i++)
                 {
+                    if($events[0][$i]->history_number != 31346)
+                        continue;
+
                     // Checking for 1st time
                     if($previousEvent == null)
                     {
@@ -109,21 +114,20 @@ class GraphController extends Controller
                             ($previousEvent->event_action_number == 1 && $previousEvent->event_number ==  $previousEvent->state))
                     {
                         //dd(11);
-                        for($j = $previousEvent->position + 1; $j <= $events[0][$i]->position; $j++)
+                        for($j = $previousEvent->position; $j < $events[0][$i]->position; $j++)
                         {
-                            echo $j.' ';
+                            //echo $j.' ';
                             $value = $durationInSecond[$j];
                             $durationInSecond[$j] = $value + 1;
                         }
-                        
                     }
                     $previousEvent = $events[0][$i];
                 }
-
                 dd($durationInSecond);
-               
             }
         }
+
+        return view('graph.index', compact('durationInSecond'));
     }
 
     /**
@@ -234,7 +238,6 @@ class GraphController extends Controller
                     {
                         $previousLog->state = $log->event_number;
                         $log->state = $log->event_number;
-                        //dd($log);
                     }
                     $this->fixDuration($maxKey, $log);
                     $durations[$log->duration][] = $log;

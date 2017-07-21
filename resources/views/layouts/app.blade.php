@@ -25,6 +25,8 @@
     <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
     <!-- Select2 -->
     <link href="{{ asset('css/SimpleSwitch.css') }}" rel="stylesheet">
+    <!-- Morris -->
+    <link href="{{ asset('css/morris.css') }}" rel="stylesheet">
     <!-- Theme style -->
     <link href="{{ asset('css/AdminLTE.min.css') }}" rel="stylesheet">
     <!-- AdminLTE Skins. Choose a skin from the css/skins
@@ -93,6 +95,9 @@
     <script src="{{ asset('/js/jquery.slimscroll.min.js') }}"></script>
     <!-- FastClick -->
     <script src="{{ asset('/js/fastclick.js') }}"></script>
+    <!-- Morris.js charts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+    <script src="{{ asset('/js/morris.min.js') }}"></script>
     <!-- AdminLTE App -->
     <script src="{{ asset('/js/app.min.js') }}"></script>
     <!-- AdminLTE for demo purposes -->
