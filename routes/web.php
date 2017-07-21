@@ -16,3 +16,4 @@ Route::get('/', function () {
 });
 
 Route::resource('graph', 'GraphController');
+Route::post('graphData', ['as'=>'graphData','uses'=>'GraphController@getGraphData']);

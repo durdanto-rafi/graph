@@ -13,121 +13,9 @@ class GraphController extends Controller
      */
     public function index()
     {
-        $logs = DB::transaction(function()
-        {
-            try 
-            {
-                DB::statement("SET @previousEventActionNumber = NULL");
-                DB::statement("SET @prePreviousEventActionNumber = NULL");
-                $data = DB::select("SELECT
-                                        (
-                                            CASE
-                                            WHEN (
-                                                @previousEventActionNumber = 4
-                                                AND b.event_action_number = 1
-                                            ) THEN
-                                                'F'
-                                            WHEN (
-                                                @previousEventActionNumber = 1
-                                                AND @prePreviousEventActionNumber = 4
-                                                AND b.event_action_number = 1
-                                            ) THEN
-                                                'F'
-                                            END
-                                        ) AS state,
-                                        b.event_number,
-                                        b.history_number,
-                                        FLOOR(a.duration / 1000) duration,
-                                        FLOOR(b.progress_time / 1000) progress_time,
-                                        FLOOR(b.position / 1000) position,
-                                        b.event_action_number,
-                                        b.speed_number,
-                                        @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
-                                        @previousEventActionNumber := b.event_action_number No_Need
-                                    FROM
-                                        log_school_contents_history_student a
-                                    INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
-                                    WHERE
-                                        a.school_contents_number = 5533
-                                    AND a.contents_download_datetime BETWEEN '2016-03-01 0:00:00'
-                                    AND '2016-08-31 0:00:00'
-                                    AND a.history_upload_datetime IS NOT NULL
-                                    AND a.duration IS NOT NULL
-                                    AND a.player3_code IS NULL
-                                    AND b.event_action_number <> 3 -- Auto playback 
-                                    -- Changing position in pause mode 
-                                    AND ! (
-                                        b.event_action_number = 1
-                                        AND b.speed_number = 0
-                                    )");
-                return $data;
-
-            } catch (\Exception $e) {
-                DB::rollback();
-                return null;
-            }
-        });
-
-
-        $durationInSecond = array();
-        //dd(json_encode($logs));
-        if($logs != null)
-        {
-            $logByDuration = $this->getDuration($logs);
-            //dd(json_encode($logByDuration));
-
-            if(count($logByDuration) == 1)
-            {
-                
-                $duration = array_keys($logByDuration)[0];
-                for($i = 0; $i < $duration; $i++)
-                {
-                    $durationInSecond[$i] = 0;
-                }
-                //dd($durationInSecond);
-
-                $events = array_values($logByDuration);
-
-                // Looping through logs and calculate in second
-                $previousEvent = null;
-                $logCount = count($events[0]);
-                for($i = 0; $i < $logCount; $i++)
-                {
-                    if($events[0][$i]->history_number != 31346)
-                        continue;
-
-                    // Checking for 1st time
-                    if($previousEvent == null)
-                    {
-                        $previousEvent = $events[0][$i];
-                        continue;
-                    }
-
-                    // Play again checking
-                    if($previousEvent->event_action_number == 4 && $events[0][$i]->event_action_number != 255)
-                    {
-                        $previousEvent->event_action_number = 0;
-                    }
-                        
-                    // Checking for play start points
-                    if(($previousEvent->event_action_number == 0) || ($previousEvent->event_action_number == 2 && $previousEvent->speed_number == 10) || 
-                            ($previousEvent->event_action_number == 1 && $previousEvent->event_number ==  $previousEvent->state))
-                    {
-                        //dd(11);
-                        for($j = $previousEvent->position; $j < $events[0][$i]->position; $j++)
-                        {
-                            //echo $j.' ';
-                            $value = $durationInSecond[$j];
-                            $durationInSecond[$j] = $value + 1;
-                        }
-                    }
-                    $previousEvent = $events[0][$i];
-                }
-                dd($durationInSecond);
-            }
-        }
-
-        return view('graph.index', compact('durationInSecond'));
+        
+        $this->processData(5533);
+        return view('graph.index');
     }
 
     /**
@@ -260,6 +148,142 @@ class GraphController extends Controller
         $log->position = floor($calculateData * $log->position);
 
         return $log;
+    }
+
+    /**
+     * Show the application selectAjax.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getGraphData(Request $request)
+    {
+    	if($request->ajax()){
+            
+
+
+    		return response()->json(['rules'=>$rules]);
+    	}
+    }
+
+    private function processData($contentNummber)
+    {
+        $dateFrom = '2016-03-01 0:00:00';
+        $dateTo = '2016-08-31 0:00:00';
+        $logs = DB::transaction(function()
+        {
+            try 
+            {
+                DB::statement("SET @previousEventActionNumber = NULL");
+                DB::statement("SET @prePreviousEventActionNumber = NULL");
+                $data = DB::select(DB::raw("SELECT
+                                        (
+                                            CASE
+                                            WHEN (
+                                                @previousEventActionNumber = 4
+                                                AND b.event_action_number = 1
+                                            ) THEN
+                                                999
+                                            WHEN (
+                                                @previousEventActionNumber = 1
+                                                AND @prePreviousEventActionNumber = 4
+                                                AND b.event_action_number = 1
+                                            ) THEN
+                                                999
+                                            END
+                                        ) AS state,
+                                        b.event_number,
+                                        b.history_number,
+                                        FLOOR(a.duration / 1000) duration,
+                                        FLOOR(b.progress_time / 1000) progress_time,
+                                        FLOOR(b.position / 1000) position,
+                                        b.event_action_number,
+                                        b.speed_number,
+                                        @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
+                                        @previousEventActionNumber := b.event_action_number No_Need
+                                    FROM
+                                        log_school_contents_history_student a
+                                    INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
+                                    WHERE
+                                        a.school_contents_number = :contectNumber
+                                    AND a.contents_download_datetime BETWEEN :dateFrom
+                                    AND :dateTo
+                                    AND a.history_upload_datetime IS NOT NULL
+                                    AND a.duration IS NOT NULL
+                                    AND a.player3_code IS NULL
+                                    AND b.event_action_number <> 3 -- Auto playback 
+                                    -- Changing position in pause mode 
+                                    AND ! (
+                                        b.event_action_number = 1
+                                        AND b.speed_number = 0
+                                    )", ["contectNumber" => $contentNummber, "dateFrom" => $dateFrom, "dateTo" => $dateTo]));
+                return $data;
+
+            } catch (\Exception $e) {
+                DB::rollback();
+                return null;
+            }
+        });
+
+
+        $durationInSecond = array();
+        dd(json_encode($logs));
+        if($logs != null)
+        {
+            $logByDuration = $this->getDuration($logs);
+            //dd(json_encode($logByDuration));
+
+            if(count($logByDuration) == 1)
+            {
+                
+                $duration = array_keys($logByDuration)[0];
+                for($i = 0; $i < $duration; $i++)
+                {
+                    $durationInSecond[$i] = array("second" => $i, "count" => 0);
+                }
+                //dd($durationInSecond);
+
+                $events = array_values($logByDuration);
+
+                // Looping through logs and calculate in second
+                $previousEvent = null;
+                $logCount = count($events[0]);
+                for($i = 0; $i < $logCount; $i++)
+                {
+                    if($events[0][$i]->history_number != 31346)
+                        continue;
+
+                    // Checking for 1st time
+                    if($previousEvent == null)
+                    {
+                        $previousEvent = $events[0][$i];
+                        continue;
+                    }
+
+                    // Play again checking
+                    if($previousEvent->event_action_number == 4 && $events[0][$i]->event_action_number != 255)
+                    {
+                        $previousEvent->event_action_number = 0;
+                    }
+                        
+                    // Checking for play start points
+                    if(($previousEvent->event_action_number == 0) || ($previousEvent->event_action_number == 2 && $previousEvent->speed_number == 10) || 
+                            ($previousEvent->event_action_number == 1 && $previousEvent->event_number ==  $previousEvent->state))
+                    {
+                        //dd(11);
+                        for($j = $previousEvent->position; $j < $events[0][$i]->position; $j++)
+                        {
+                            //echo $j.' ';
+                            $valueArray = $durationInSecond[$j];
+                            $valueArray['count'] = $valueArray['count'] + 1;
+                            $durationInSecond[$j] = $valueArray;
+                        }
+                    }
+                    $previousEvent = $events[0][$i];
+                }
+                //dd($durationInSecond);
+            }
+        }
+        return $durationInSecond;
     }
 
 }
