@@ -13,6 +13,8 @@
     <link href="{{ asset('css/font-awesome.min.css') }}" rel="stylesheet">
     <!-- Ionicons -->
     <link href="{{ asset('css/ionicons.min.css') }}" rel="stylesheet">
+    <!-- Date Range Picker -->
+    <link href="{{ asset('plugins/daterangepicker/daterangepicker.css') }}" rel="stylesheet">
     <!-- Datepicker -->
     <link href="{{ asset('css/datepicker3.css') }}" rel="stylesheet">
     <!-- Sweet Alert -->
@@ -86,9 +88,6 @@
 @section('script')
     <!-- jQuery 2.2.3 -->
     <script src="{{ asset('/js/jquery-2.2.3.min.js') }}"></script>
-    <!-- jQuery UI -->
-    <script src="{{ asset('/js/jquery-1.12.4.js') }}"></script>
-    <script src="{{ asset('/js/jquery-ui.js') }}"></script>
     <!-- Bootstrap 3.3.6 -->
     <script src="{{ asset('/js/bootstrap.min.js') }}"></script>
     <!-- SlimScroll -->
@@ -103,6 +102,8 @@
     <!-- AdminLTE for demo purposes -->
     <script src="{{ asset('/js/demo.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
+    <!-- Date Range Picker -->
+    <script src="{{ asset('/plugins/daterangepicker/daterangepicker.js') }}"></script>
     <!-- Datepicker -->
     <script src="{{ asset('/js/bootstrap-datepicker.js') }}"></script>
     <!-- Select2 -->

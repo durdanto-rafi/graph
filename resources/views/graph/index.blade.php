@@ -17,28 +17,78 @@
         </div>
     @endif
 
+    {!! Form::open(array('id'=>'frmGraph')) !!}
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12">
+                <div class="form-group">
+                    <strong>Name</strong> 
+                    {!! Form::text('contentNumber', null, array('placeholder' => 'Name','class' => 'form-control')) !!}
+                </div>
+            </div>
+
+            <div class="col-xs-6 col-sm-6 col-md-6">
+                <div class="form-group">
+                    <label>Contract Start Date</label>
+                    <div class="input-group date">
+                        <div class="input-group-addon">
+                            <i class="fa fa-calendar"></i>
+                        </div>
+                        {!! Form::text('dateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right', 'id'=>'reservation')) !!}
+                    </div>
+                <!-- /.input group -->
+                </div>
+            </div>
+
+            <div class="col-xs-6 col-sm-6 col-md-6">
+                <div class="form-group">
+                    <label>Contract Period Date</label>
+                    <div class="input-group date">
+                        <div class="input-group-addon">
+                            <i class="fa fa-calendar"></i>
+                        </div>
+                        {!! Form::text('contract_period_day', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtPeriodDate', 'onkeypress'=>'return false;')) !!}
+                    </div>
+                <!-- /.input group -->
+                </div>
+            </div>
+
+           
+
+            <div class="col-xs-12 col-sm-12 col-md-12 text-center">
+                {{ Form::submit('Submit', array('class' => 'btn btn-primary')) }}
+            </div>
+
+             <div class="col-xs-12 col-sm-12 col-md-12">
+                <div class="form-group">
+                    <label id="lblMessage"/> 
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <!-- LINE CHART -->
+                <div class="box box-info">
+                    <div class="box-header with-border">
+                    <h3 class="box-title">Line Chart</h3>
+
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                    </div>
+                    </div>
+                    <div class="box-body chart-responsive">
+                    <div class="chart" id="line-chart" style="height: 400px;"></div>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+                <!-- /.box -->
+            </div>
+        </div>
+    {!! Form::close() !!}
+
     <div class="row">
         <!-- /.col (LEFT) -->
-        <div class="col-md-12">
-          <!-- LINE CHART -->
-          <div class="box box-info">
-            <div class="box-header with-border">
-              <h3 class="box-title">Line Chart</h3>
-
-              <div class="box-tools pull-right">
-                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                </button>
-                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
-              </div>
-            </div>
-            <div class="box-body chart-responsive">
-              <div class="chart" id="line-chart" style="height: 400px;"></div>
-            </div>
-            <!-- /.box-body -->
-          </div>
-          <!-- /.box -->
-
-        </div>
+        
         <!-- /.col (RIGHT) -->
       </div>
 
@@ -47,61 +97,56 @@
 @section('script') @parent
 <script type="text/javascript">
 
+    var morrisData = null;
+    //Date picker
+    $('.datepicker').datepicker({
+        autoclose: true,
+        format: 'yyyy-mm-dd'
+    });
+
+    //Date range picker with time picker
+    $('#reservationtime').daterangepicker({timePicker: true, timePickerIncrement: 30, format: 'MM/DD/YYYY h:mm A'});
+
     window.onload = function() {
        loadRules();
     };
-     
-    $(function () {
-        "use strict";
-    
-        var morrisData = JSON.parse({!! $durationInSecond !!});
-        console.log(morrisData);
 
-
-        // LINE CHART
-        var line = new Morris.Line({
-        element: 'line-chart',
-        resize: true,
-        data: morrisData,
-        xkey: 'second',
-        ykeys: ['count'],
-        labels: ['Item 1'],
-        lineColors: ['#3c8dbc'],
-        hideHover: 'auto'
-    });
-
-
-    function loadRules() {
-        var exam_type_id = $('#ddlExamType').val();
+    $('#frmGraph').on('submit', function(e) {
+        e.preventDefault();
+        var contentNumber = 5533;
+        var dateFrom = '2016-03-01 0:00:00';
+        var dateTo = '2016-08-31 0:00:00';
         var token = $("input[name='_token']").val();
-        $.ajax(
-        {
-            url: "{{ route('examTypeRules') }}",
+        $.ajax({
+            url: "{{ route('graphData') }}",
             method: 'POST',
-            data: {exam_type_id:exam_type_id, _token:token},          
-            success: function(data) 
-            {
-                var row = [];
-                $.each(data.rules, function(i, rule) 
-                {
-                    var showRoute = '{{ route("rule.show", ":id") }}';
-                    var editRoute = '{{ route("rule.edit", ":id") }}';
+            data: {contentNumber:contentNumber, dateFrom:dateFrom, dateTo:dateTo, _token:token},
+            success: function(data) {
+                morrisData = data.durationInSecond;
+                console.log(morrisData);
 
-                    showRoute = showRoute.replace(':id', rule.id);
-                    editRoute = editRoute.replace(':id', rule.id);
-
-                    row.push("<tr>");
-                    row.push("<td>" + (i + 1) + "</td>");          
-                    row.push("<td>" + rule.name + "</td>");
-                    row.push("<td>" + ( rule.deactivated === 0 ? "<i class='fa fa-check-square-o' aria-hidden='true'></i>" : "<i class='fa fa-times' aria-hidden='true'></i>" ) + "</td>");
-                    row.push("<td> <a class='btn btn-info' href=" + showRoute + ">Show</a>");
-                    {{-- row.push(" <a class='btn btn-primary' href=" + editRoute + ">Edit</a>"); --}}
-                    row.push(" <a class='btn btn-danger' id='btnDelete' value='{{ csrf_token() }}' data-id='"+ rule.id +"' >Delete</a></td>");
-                    row.push("</tr>");
+                // LINE CHART
+                var line = new Morris.Line({
+                    element: 'line-chart',
+                    resize: true,
+                    data: morrisData,
+                    xkey: 'second',
+                    ykeys: ['count'],
+                    labels: ['Item 1'],
+                    lineColors: ['#3c8dbc'],
+                    hideHover: 'auto',
+                    xLabels: "30sec"
                 });
-                $('#tblRules').html(row.join(""));
+                
+            },
+            error: function( data ) {
+                if ( data.status === 422 ) {
+                    toastr.error('Something went wrong !');
+                }
             }
         });
-    }
+    });
+    
+    
 </script>
 @stop

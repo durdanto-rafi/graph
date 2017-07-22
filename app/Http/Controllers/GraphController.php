@@ -13,8 +13,9 @@ class GraphController extends Controller
      */
     public function index()
     {
-        
-        $this->processData(5533);
+        $dateFrom = '2016-03-01 0:00:00';
+        $dateTo = '2016-08-31 0:00:00';
+        $this->processData(5533, $dateFrom, $dateTo);
         return view('graph.index');
     }
 
@@ -158,37 +159,35 @@ class GraphController extends Controller
     public function getGraphData(Request $request)
     {
     	if($request->ajax()){
-            
-
-
-    		return response()->json(['rules'=>$rules]);
+            $durationInSecond = $this->processData($request->contentNumber, $request->dateFrom, $request->dateTo);
+    		return response()->json(['durationInSecond'=>$durationInSecond]);
     	}
     }
 
-    private function processData($contentNummber)
+    private function processData($contentNummber, $dateFrom, $dateTo)
     {
-        $dateFrom = '2016-03-01 0:00:00';
-        $dateTo = '2016-08-31 0:00:00';
-        $logs = DB::transaction(function()
+        //dd($contentNummber);
+        
+        $logs = DB::transaction(function() use ($contentNummber, $dateFrom, $dateTo)
         {
             try 
             {
                 DB::statement("SET @previousEventActionNumber = NULL");
                 DB::statement("SET @prePreviousEventActionNumber = NULL");
-                $data = DB::select(DB::raw("SELECT
+                $data = DB::select("SELECT
                                         (
                                             CASE
                                             WHEN (
                                                 @previousEventActionNumber = 4
                                                 AND b.event_action_number = 1
                                             ) THEN
-                                                999
+                                                'F'
                                             WHEN (
                                                 @previousEventActionNumber = 1
                                                 AND @prePreviousEventActionNumber = 4
                                                 AND b.event_action_number = 1
                                             ) THEN
-                                                999
+                                                'F'
                                             END
                                         ) AS state,
                                         b.event_number,
@@ -204,9 +203,9 @@ class GraphController extends Controller
                                         log_school_contents_history_student a
                                     INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
                                     WHERE
-                                        a.school_contents_number = :contectNumber
-                                    AND a.contents_download_datetime BETWEEN :dateFrom
-                                    AND :dateTo
+                                        a.school_contents_number = ?
+                                    AND a.contents_download_datetime BETWEEN ?
+                                    AND ?
                                     AND a.history_upload_datetime IS NOT NULL
                                     AND a.duration IS NOT NULL
                                     AND a.player3_code IS NULL
@@ -215,7 +214,7 @@ class GraphController extends Controller
                                     AND ! (
                                         b.event_action_number = 1
                                         AND b.speed_number = 0
-                                    )", ["contectNumber" => $contentNummber, "dateFrom" => $dateFrom, "dateTo" => $dateTo]));
+                                    )", [$contentNummber, $dateFrom, $dateTo]);
                 return $data;
 
             } catch (\Exception $e) {
@@ -226,7 +225,7 @@ class GraphController extends Controller
 
 
         $durationInSecond = array();
-        dd(json_encode($logs));
+        //dd(json_encode($logs));
         if($logs != null)
         {
             $logByDuration = $this->getDuration($logs);
@@ -249,8 +248,8 @@ class GraphController extends Controller
                 $logCount = count($events[0]);
                 for($i = 0; $i < $logCount; $i++)
                 {
-                    if($events[0][$i]->history_number != 31346)
-                        continue;
+                    // if($events[0][$i]->history_number != 31346)
+                    //     continue;
 
                     // Checking for 1st time
                     if($previousEvent == null)
