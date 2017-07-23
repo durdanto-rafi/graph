@@ -13,9 +13,7 @@ class GraphController extends Controller
      */
     public function index()
     {
-        $dateFrom = '2016-03-01 0:00:00';
-        $dateTo = '2016-08-31 0:00:00';
-        $this->processData(5533, $dateFrom, $dateTo);
+        $this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
         return view('graph.index');
     }
 
@@ -181,13 +179,13 @@ class GraphController extends Controller
                                                 @previousEventActionNumber = 4
                                                 AND b.event_action_number = 1
                                             ) THEN
-                                                'F'
+                                                'D'
                                             WHEN (
                                                 @previousEventActionNumber = 1
                                                 AND @prePreviousEventActionNumber = 4
                                                 AND b.event_action_number = 1
                                             ) THEN
-                                                'F'
+                                                'D'
                                             END
                                         ) AS state,
                                         b.event_number,
@@ -225,19 +223,15 @@ class GraphController extends Controller
 
 
         $durationInSecond = array();
-        //dd(json_encode($logs));
         if($logs != null)
         {
             $logByDuration = $this->getDuration($logs);
-            //dd(json_encode($logByDuration));
-
             if(count($logByDuration) == 1)
             {
-                
                 $duration = array_keys($logByDuration)[0];
-                for($i = 0; $i < $duration; $i++)
+                for($i = 0; $i <= $duration; $i++)
                 {
-                    $durationInSecond[$i] = array("second" => $i, "count" => 0);
+                    $durationInSecond[$i] = array("second" => $i, "count" => 0, "pauseCount" => 0);
                 }
                 //dd($durationInSecond);
 
@@ -248,38 +242,49 @@ class GraphController extends Controller
                 $logCount = count($events[0]);
                 for($i = 0; $i < $logCount; $i++)
                 {
-                    // if($events[0][$i]->history_number != 31346)
-                    //     continue;
+                    $currentEvent = $events[0][$i];
+                    if($currentEvent->history_number != 31354)
+                        continue;
 
+                    
+                    // Pause Count
+                    if($currentEvent->event_action_number == 2 && $currentEvent->speed_number == 0)
+                    {
+                        $valueArray = $durationInSecond[$currentEvent->position];
+                        $valueArray['pauseCount'] = $valueArray['pauseCount'] + 1;
+                        $durationInSecond[$currentEvent->position] = $valueArray;
+                    }
+
+
+
+                    // View Density Count
                     // Checking for 1st time
                     if($previousEvent == null)
                     {
-                        $previousEvent = $events[0][$i];
+                        $previousEvent = $currentEvent;
                         continue;
                     }
 
                     // Play again checking
-                    if($previousEvent->event_action_number == 4 && $events[0][$i]->event_action_number != 255)
+                    if($previousEvent->event_action_number == 4 && $currentEvent->event_action_number != 255)
                     {
                         $previousEvent->event_action_number = 0;
                     }
                         
-                    // Checking for play start points
+                    // Checking for play start points (View Density)
                     if(($previousEvent->event_action_number == 0) || ($previousEvent->event_action_number == 2 && $previousEvent->speed_number == 10) || 
                             ($previousEvent->event_action_number == 1 && $previousEvent->event_number ==  $previousEvent->state))
                     {
-                        //dd(11);
-                        for($j = $previousEvent->position; $j < $events[0][$i]->position; $j++)
+                        for($j = $previousEvent->position; $j <= $currentEvent->position; $j++)
                         {
-                            //echo $j.' ';
                             $valueArray = $durationInSecond[$j];
                             $valueArray['count'] = $valueArray['count'] + 1;
                             $durationInSecond[$j] = $valueArray;
                         }
                     }
-                    $previousEvent = $events[0][$i];
+                    $previousEvent = $currentEvent;
                 }
-                //dd($durationInSecond);
+                dd(json_encode($durationInSecond));
             }
         }
         return $durationInSecond;

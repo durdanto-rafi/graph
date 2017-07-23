@@ -66,7 +66,30 @@
                 </div>
             </div>
             <div class="box-body chart-responsive">
-                <div class="chart" id="line-chart" style="height: 400px;"></div>
+                <div class="chart" id="line-chart-density"></div>
+            </div>
+            <!-- Loading (remove the following to stop the loading)-->
+            <div class="overlay">
+                <i class="fa fa-refresh fa-spin"></i>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.box -->
+    </div>
+
+    <div class="col-md-12">
+        <!-- LINE CHART -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 id="graphHeader" class="box-title">Pause</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                            </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body chart-responsive">
+                <div class="chart" id="line-chart-pause"></div>
             </div>
             <!-- Loading (remove the following to stop the loading)-->
             <div class="overlay">
@@ -113,10 +136,11 @@
             data: $(this).serialize(),
             success: function (data) {
                 $('.overlay').hide();
-                morrisData = data.durationInSecond;
-                graphHeader.innerText = 'View Density for '+ document.getElementById("txtContentNumber").value;;
+                //graphHeader.innerText = 'View Density for '+ document.getElementById("txtContentNumber").value;
+                console.log(data.durationInSecond)
 
-                line.setData(data.durationInSecond);
+                densityLine.setData(data.durationInSecond);
+                pauseLine.setData(data.durationInSecond);
             },
             error: function (data) {
                 if (data.status === 422) {
@@ -125,9 +149,9 @@
             }
         });
 
-        // LINE CHART
-        var line = new Morris.Line({
-            element: 'line-chart',
+        // Density graph
+        var densityLine = new Morris.Line({
+            element: 'line-chart-density',
             resize: true,
             data: [0,0],
             xkey: 'second',
@@ -137,8 +161,28 @@
             hideHover: 'auto',
             parseTime: false,
             pointSize: 0,
-            xLabelFormat: function(x) { return x.label + ' sec' }
+            xLabelFormat: function(x) { return fmtMSS(x.label) }
+        });
+
+        // Pause graph
+        var pauseLine = new Morris.Line({
+            element: 'line-chart-pause',
+            resize: true,
+            data: [0,0],
+            xkey: 'second',
+            ykeys: ['pauseCount'],
+            labels: ['Pause count'],
+            lineColors: ['#3c8dbc'],
+            hideHover: 'auto',
+            parseTime: false,
+            pointSize: 0,
+            xLabelFormat: function(x) { return fmtMSS(x.label) }
         });
     });
+
+    function fmtMSS(s)
+    {
+        return(s-(s%=60))/60+(9<s?':':':0')+s
+    }
 </script>
 @stop
