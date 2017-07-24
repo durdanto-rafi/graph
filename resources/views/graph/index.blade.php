@@ -128,7 +128,8 @@
     $('#frmGraph').on('submit', function (e) {
         e.preventDefault();
         $('.overlay').show();
-        $("#line-chart").html("");
+        $("#line-chart-density").html("");
+        $("#line-chart-pause").html("");
         
         $.ajax({
             url: "{{ route('graphData') }}",

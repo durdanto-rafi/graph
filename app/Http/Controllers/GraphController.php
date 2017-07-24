@@ -13,7 +13,7 @@ class GraphController extends Controller
      */
     public function index()
     {
-        $this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
+        //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
         return view('graph.index');
     }
 
@@ -243,8 +243,8 @@ class GraphController extends Controller
                 for($i = 0; $i < $logCount; $i++)
                 {
                     $currentEvent = $events[0][$i];
-                    if($currentEvent->history_number != 31354)
-                        continue;
+                    // if($currentEvent->history_number != 31354)
+                    //     continue;
 
                     
                     // Pause Count
@@ -272,10 +272,10 @@ class GraphController extends Controller
                     }
                         
                     // Checking for play start points (View Density)
-                    if(($previousEvent->event_action_number == 0) || ($previousEvent->event_action_number == 2 && $previousEvent->speed_number == 10) || 
+                    if(($previousEvent->event_action_number == 0) || ($previousEvent->event_action_number == 2 && $previousEvent->speed_number > 0) || 
                             ($previousEvent->event_action_number == 1 && $previousEvent->event_number ==  $previousEvent->state))
                     {
-                        for($j = $previousEvent->position; $j <= $currentEvent->position; $j++)
+                        for($j = $previousEvent->position; $j < $currentEvent->position; $j++)
                         {
                             $valueArray = $durationInSecond[$j];
                             $valueArray['count'] = $valueArray['count'] + 1;
@@ -284,7 +284,7 @@ class GraphController extends Controller
                     }
                     $previousEvent = $currentEvent;
                 }
-                dd(json_encode($durationInSecond));
+                //dd(json_encode($durationInSecond));
             }
         }
         return $durationInSecond;
