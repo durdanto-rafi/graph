@@ -143,7 +143,7 @@ class GraphController extends Controller
         $calculateData = ($realDuration / $log->duration);
 
         $log->duration = floor($calculateData * $log->duration);
-        $log->progress_time = floor($calculateData * $log->progress_time);
+        //$log->progress_time = floor($calculateData * $log->progress_time);
         $log->position = floor($calculateData * $log->position);
 
         return $log;
@@ -164,8 +164,6 @@ class GraphController extends Controller
 
     private function processData($contentNummber, $dateFrom, $dateTo)
     {
-        //dd($contentNummber);
-        
         $logs = DB::transaction(function() use ($contentNummber, $dateFrom, $dateTo)
         {
             try 
@@ -231,7 +229,7 @@ class GraphController extends Controller
                 $duration = array_keys($logByDuration)[0];
                 for($i = 0; $i <= $duration; $i++)
                 {
-                    $durationInSecond[$i] = array("second" => $i, "count" => 0, "pauseCount" => 0);
+                    $durationInSecond[$i] = array("second" => $i, "viewCount" => 0, "pauseCount" => 0, "forwardCount" => 0, "rewindCount" => 0);
                 }
                 //dd($durationInSecond);
 
@@ -243,7 +241,7 @@ class GraphController extends Controller
                 for($i = 0; $i < $logCount; $i++)
                 {
                     $currentEvent = $events[0][$i];
-                    // if($currentEvent->history_number != 31354)
+                    // if($currentEvent->history_number != 31347)
                     //     continue;
 
                     
@@ -251,11 +249,29 @@ class GraphController extends Controller
                     if($currentEvent->event_action_number == 2 && $currentEvent->speed_number == 0)
                     {
                         $valueArray = $durationInSecond[$currentEvent->position];
-                        $valueArray['pauseCount'] = $valueArray['pauseCount'] + 1;
+                        $valueArray['pauseCount'] += 1;
                         $durationInSecond[$currentEvent->position] = $valueArray;
                     }
 
+                    // Forward - Rewind Count
+                    if($currentEvent->event_action_number == 1 && $currentEvent->event_number ==  $currentEvent->state)
+                    {
+                        $valueArray = $durationInSecond[$currentEvent->position];
+                        // Forward
+                        if($currentEvent->position > $previousEvent->position)
+                        {
+                            $valueArray['forwardCount'] += 1;
+                        }
+                        // Rewind
+                        else if($currentEvent->position < $previousEvent->position)
+                        {
+                            $valueArray['rewindCount'] += 1;
+                        }
+                        
+                        $durationInSecond[$currentEvent->position] = $valueArray;
+                    }
 
+        
 
                     // View Density Count
                     // Checking for 1st time
@@ -278,7 +294,7 @@ class GraphController extends Controller
                         for($j = $previousEvent->position; $j < $currentEvent->position; $j++)
                         {
                             $valueArray = $durationInSecond[$j];
-                            $valueArray['count'] = $valueArray['count'] + 1;
+                            $valueArray['viewCount'] += 1;
                             $durationInSecond[$j] = $valueArray;
                         }
                     }
@@ -289,5 +305,4 @@ class GraphController extends Controller
         }
         return $durationInSecond;
     }
-
 }

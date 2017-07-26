@@ -156,7 +156,7 @@
             resize: true,
             data: [0,0],
             xkey: 'second',
-            ykeys: ['count'],
+            ykeys: ['viewCount'],
             labels: ['View count'],
             lineColors: ['#3c8dbc'],
             hideHover: 'auto',
@@ -171,19 +171,21 @@
             resize: true,
             data: [0,0],
             xkey: 'second',
-            ykeys: ['pauseCount'],
-            labels: ['Pause count'],
-            lineColors: ['#3c8dbc'],
+            ykeys: ['pauseCount', 'forwardCount', 'rewindCount'],
+            labels: ['Pause count', 'Forward count', 'Rewind count'],
+            lineColors: ['#FF0000', '#0000CD', '#00FF00'],
             hideHover: 'auto',
             parseTime: false,
             pointSize: 0,
-            xLabelFormat: function(x) { return fmtMSS(x.label) }
+            xLabelFormat: function(x) { return fmtMSS(x.label) },
+            lineWidth : 1
         });
     });
 
     function fmtMSS(s)
     {
-        return(s-(s%=60))/60+(9<s?':':':0')+s
+        //return(s-(s%=60))/60+(9<s?':':':0')+s
+        return s
     }
 </script>
 @stop
