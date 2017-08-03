@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 class GraphController extends Controller
 {
-    public $contentInfo = array();
+    public $contentInfo = array("eventCount" => 0, "totalPauseCount" => 0, "totalForwardCount" => 0, "totalRewindCount" => 0);
 
     /**
      * Display a listing of the resource.
@@ -15,7 +15,7 @@ class GraphController extends Controller
      */
     public function index()
     {
-        //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
+        $this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
         return view('graph.index');
     }
 
@@ -232,6 +232,15 @@ class GraphController extends Controller
         $durationInSecond = array();
         if($logs != null)
         {
+            // Getting View Count
+            $histories = array();
+            foreach($logs as $log)
+            { 
+                $histories[$log->history_number][] = $log;
+            }
+            $this->contentInfo['totalViewCount'] = count($histories);
+
+
             $logByDuration = $this->getDuration($logs);
             if(count($logByDuration) == 1)
             {
@@ -270,24 +279,28 @@ class GraphController extends Controller
                         $valueArray = $durationInSecond[$currentEvent->position];
                         $valueArray['pauseCount'] += 1;
                         $durationInSecond[$currentEvent->position] = $valueArray;
+
+                        $this->contentInfo['eventCount'] += 1;
+                        $this->contentInfo['totalPauseCount'] += 1;
                     }
 
                     // Forward - Rewind Count
                     if($currentEvent->event_action_number == 1 && $currentEvent->event_number ==  $currentEvent->state)
                     {
-                        $valueArray = $durationInSecond[$currentEvent->position];
-                        // Forward
+                        // Forward position of start point 
                         if($currentEvent->position > $previousEvent->position)
                         {
-                            $valueArray['forwardCount'] += 1;
+                            $durationInSecond[$previousEvent->position]['forwardCount'] += 1;
+                            $this->contentInfo['totalForwardCount'] += 1;
                         }
-                        // Rewind
+                        // Rewind position of ending point
                         else if($currentEvent->position < $previousEvent->position)
                         {
-                            $valueArray['rewindCount'] += 1;
+                            $durationInSecond[$currentEvent->position]['rewindCount'] += 1;
+                            $this->contentInfo['totalRewindCount'] += 1;
                         }
-                        
-                        $durationInSecond[$currentEvent->position] = $valueArray;
+
+                        $this->contentInfo['eventCount'] += 1;
                     }
 
         
@@ -319,7 +332,13 @@ class GraphController extends Controller
                     }
                     $previousEvent = $currentEvent;
                 }
+                $this->contentInfo['eventPerView'] = floor($this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount']);
+                $this->contentInfo['pauseRatio'] = floor($this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount']) * 100;
+                $this->contentInfo['forwardRatio'] = floor($this->contentInfo['totalForwardCount'] / $this->contentInfo['totalViewCount']) * 100;
+                $this->contentInfo['rewindRatio'] = floor($this->contentInfo['totalRewindCount'] / $this->contentInfo['totalViewCount']) * 100;
+                
                 //dd(json_encode($durationInSecond));
+                dd($this->contentInfo);
             }
         }
         return $durationInSecond;

@@ -88,6 +88,47 @@
             </div>
         </div>
 
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Total Number of Event</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Total Number of View</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Average events per view</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Pause Ratio</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Forward Ratio</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Rewind Ratio</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+            </div>
+        </div>
 
         <div class="col-md-12">
             <!-- LINE CHART -->
@@ -165,7 +206,7 @@
         $('.overlay').show();
         $("#line-chart-density").html("");
         $("#line-chart-pause").html("");
-        
+        clearData();
         $.ajax({
             url: "{{ route('graphData') }}",
             method: 'POST',
@@ -228,6 +269,15 @@
     {
         //return(s-(s%=60))/60+(9<s?':':':0')+s
         return s
+    }
+
+    function clearData()
+    {
+        document.getElementById('txtContentName').value = '';
+        document.getElementById('txtSubjectSectionName').value = '';
+        document.getElementById('txtSubjectName').value = '';
+        document.getElementById('txtRegisteredFrom').value = '';
+        document.getElementById('txtRegisteredTo').value = '';
     }
 </script>
 @stop
