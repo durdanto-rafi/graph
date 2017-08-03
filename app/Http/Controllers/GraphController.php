@@ -15,7 +15,7 @@ class GraphController extends Controller
      */
     public function index()
     {
-        $this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
+        //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
         return view('graph.index');
     }
 
@@ -232,7 +232,7 @@ class GraphController extends Controller
         $durationInSecond = array();
         if($logs != null)
         {
-            // Getting View Count
+            // Getting total View Count
             $histories = array();
             foreach($logs as $log)
             { 
@@ -290,7 +290,7 @@ class GraphController extends Controller
                         // Forward position of start point 
                         if($currentEvent->position > $previousEvent->position)
                         {
-                            $durationInSecond[$previousEvent->position]['forwardCount'] += 1;
+                            $durationInSecond[$previousEvent->position]['forwardCount'] -= 1;
                             $this->contentInfo['totalForwardCount'] += 1;
                         }
                         // Rewind position of ending point
@@ -333,12 +333,12 @@ class GraphController extends Controller
                     $previousEvent = $currentEvent;
                 }
                 $this->contentInfo['eventPerView'] = floor($this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount']);
-                $this->contentInfo['pauseRatio'] = floor($this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount']) * 100;
-                $this->contentInfo['forwardRatio'] = floor($this->contentInfo['totalForwardCount'] / $this->contentInfo['totalViewCount']) * 100;
-                $this->contentInfo['rewindRatio'] = floor($this->contentInfo['totalRewindCount'] / $this->contentInfo['totalViewCount']) * 100;
+                $this->contentInfo['pauseRatio'] = $this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount'] * 100;
+                $this->contentInfo['forwardRatio'] = $this->contentInfo['totalForwardCount'] / $this->contentInfo['totalViewCount'] * 100;
+                $this->contentInfo['rewindRatio'] = $this->contentInfo['totalRewindCount'] / $this->contentInfo['totalViewCount'] * 100;
                 
                 //dd(json_encode($durationInSecond));
-                dd($this->contentInfo);
+                //dd($this->contentInfo);
             }
         }
         return $durationInSecond;

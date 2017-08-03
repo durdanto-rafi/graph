@@ -43,7 +43,7 @@
     <![endif]-->
 </head>
 
-<body class="hold-transition skin-purple sidebar-mini">
+<body class="hold-transition skin-purple sidebar-collapse sidebar-mini">
 <!-- Site wrapper -->
 <div class="wrapper">
 @include('partials.header')

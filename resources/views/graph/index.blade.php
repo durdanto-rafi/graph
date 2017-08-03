@@ -91,42 +91,42 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Total Number of Event</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Total Number of View</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Average events per view</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Pause Ratio</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtPauseRatio', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Forward Ratio</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtForwardRatio', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Rewind Ratio</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtRewindRatio', 'disabled')) !!}
             </div>
         </div>
 
@@ -223,6 +223,13 @@
                 document.getElementById('txtRegisteredFrom').value = data.contentInfo.registered_from;
                 document.getElementById('txtRegisteredTo').value = data.contentInfo.registered_to;
 
+                document.getElementById('txtTotalEvent').value = data.contentInfo.eventCount;
+                document.getElementById('txtTotalView').value = data.contentInfo.totalViewCount;
+                document.getElementById('txtEventPerView').value = data.contentInfo.eventPerView;
+                document.getElementById('txtPauseRatio').value = data.contentInfo.pauseRatio;
+                document.getElementById('txtForwardRatio').value = data.contentInfo.forwardRatio;
+                document.getElementById('txtRewindRatio').value = data.contentInfo.rewindRatio;
+
                 densityLine.setData(data.durationInSecond);
                 pauseLine.setData(data.durationInSecond);
             },
@@ -256,7 +263,7 @@
             xkey: 'second',
             ykeys: ['pauseCount', 'forwardCount', 'rewindCount'],
             labels: ['Pause count', 'Forward count', 'Rewind count'],
-            lineColors: ['#FF0000', '#0000CD', '#00FF00'],
+            lineColors: ['#FF0000', '#0000CD', '#008000'],
             hideHover: 'auto',
             parseTime: false,
             pointSize: 0,
@@ -278,6 +285,13 @@
         document.getElementById('txtSubjectName').value = '';
         document.getElementById('txtRegisteredFrom').value = '';
         document.getElementById('txtRegisteredTo').value = '';
+
+        document.getElementById('txtTotalEvent').value = '';
+        document.getElementById('txtTotalView').value = '';
+        document.getElementById('txtEventPerView').value = '';
+        document.getElementById('txtPauseRatio').value = '';
+        document.getElementById('txtForwardRatio').value = '';
+        document.getElementById('txtRewindRatio').value = '';
     }
 </script>
 @stop
