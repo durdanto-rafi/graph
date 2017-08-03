@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 class GraphController extends Controller
 {
+    public $contentInfo = array();
+
     /**
      * Display a listing of the resource.
      *
@@ -158,7 +160,7 @@ class GraphController extends Controller
     {
     	if($request->ajax()){
             $durationInSecond = $this->processData($request->contentNumber, $request->dateFrom, $request->dateTo);
-    		return response()->json(['durationInSecond'=>$durationInSecond]);
+    		return response()->json(['durationInSecond'=> $durationInSecond, 'contentInfo'=> $this->contentInfo]);
     	}
     }
 
@@ -171,46 +173,53 @@ class GraphController extends Controller
                 DB::statement("SET @previousEventActionNumber = NULL");
                 DB::statement("SET @prePreviousEventActionNumber = NULL");
                 $data = DB::select("SELECT
-                                        (
-                                            CASE
-                                            WHEN (
-                                                @previousEventActionNumber = 4
-                                                AND b.event_action_number = 1
-                                            ) THEN
-                                                'D'
-                                            WHEN (
-                                                @previousEventActionNumber = 1
-                                                AND @prePreviousEventActionNumber = 4
-                                                AND b.event_action_number = 1
-                                            ) THEN
-                                                'D'
-                                            END
-                                        ) AS state,
-                                        b.event_number,
-                                        b.history_number,
-                                        FLOOR(a.duration / 1000) duration,
-                                        FLOOR(b.progress_time / 1000) progress_time,
-                                        FLOOR(b.position / 1000) position,
-                                        b.event_action_number,
-                                        b.speed_number,
-                                        @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
-                                        @previousEventActionNumber := b.event_action_number No_Need
+                                    (
+                                    CASE
+                                    WHEN (
+                                    @previousEventActionNumber = 4
+                                    AND b.event_action_number = 1
+                                    ) THEN
+                                    'F'
+                                    WHEN (
+                                    @previousEventActionNumber = 1
+                                    AND @prePreviousEventActionNumber = 4
+                                    AND b.event_action_number = 1
+                                    ) THEN
+                                    'F'
+                                    END
+                                    ) AS state,
+                                    b.event_number,
+                                    b.history_number,
+                                    FLOOR(a.duration / 1000) duration,
+                                    FLOOR(b.progress_time / 1000) progress_time,
+                                    FLOOR(b.position / 1000) position,
+                                    b.event_action_number,
+                                    b.speed_number,
+                                    c.name as contents_name,
+                                    d.name as subject_section_name,
+                                    e.name as subject_name,
+                                    a.registered_datetime as log_registered_day,
+                                    @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
+                                    @previousEventActionNumber := b.event_action_number No_Need1
                                     FROM
-                                        log_school_contents_history_student a
+                                    log_school_contents_history_student a
                                     INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
+                                    INNER JOIN tbl_school_contents c ON c.school_contents_number = a.school_contents_number
+                                    INNER JOIN tbl_school_subject_section d ON d.school_subject_section_number = c.school_subject_section_number
+                                    INNER JOIN tbl_school_subject e ON e.school_subject_number = d.school_subject_number
                                     WHERE
-                                        a.school_contents_number = ?
+                                    a.school_contents_number = ?
                                     AND a.contents_download_datetime BETWEEN ?
                                     AND ?
                                     AND a.history_upload_datetime IS NOT NULL
                                     AND a.duration IS NOT NULL
                                     AND a.player3_code IS NULL
-                                    AND b.event_action_number <> 3 -- Auto playback 
-                                    -- Changing position in pause mode 
+                                    AND b.event_action_number <> 3 -- Auto playback
+                                    -- Changing position in pause mode
                                     AND ! (
-                                        b.event_action_number = 1
-                                        AND b.speed_number = 0
-                                    )", [$contentNummber, $dateFrom, $dateTo]);
+                                    b.event_action_number = 1
+                                    AND b.speed_number = 0
+                                    ) order by a.registered_datetime", [$contentNummber, $dateFrom, $dateTo]);
                 return $data;
 
             } catch (\Exception $e) {
@@ -219,7 +228,7 @@ class GraphController extends Controller
             }
         });
 
-
+        //dd($logs);
         $durationInSecond = array();
         if($logs != null)
         {
@@ -234,6 +243,16 @@ class GraphController extends Controller
                 //dd($durationInSecond);
 
                 $events = array_values($logByDuration);
+
+                // Loading contect Information
+                if(count($events[0]) > 0)
+                {
+                     $this->contentInfo['contents_name'] = $events[0][0]->contents_name;
+                     $this->contentInfo['subject_section_name'] = $events[0][0]->subject_section_name;
+                     $this->contentInfo['subject_name'] = $events[0][0]->subject_name;
+                     $this->contentInfo['registered_from'] = $events[0][0]->log_registered_day;
+                     $this->contentInfo['registered_to'] = $events[0][count($events[0])-1]->log_registered_day;
+                }
 
                 // Looping through logs and calculate in second
                 $previousEvent = null;

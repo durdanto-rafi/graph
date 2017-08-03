@@ -10,100 +10,135 @@
 @endif 
 
 {!! Form::open(array('id'=>'frmGraph')) !!}
-<div class="row">
-    <div class="col-xs-4 col-sm-4 col-md-4">
-        <div class="form-group">
-            <label>Content Number</label> 
-            {!! Form::text('contentNumber', null, array('placeholder' => 'Name','class' => 'form-control', 'id'=>'txtContentNumber', 'onkeypress'=>'return numberValidate(event);')) !!}
+    <div class="row">
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Content Number</label> 
+                {!! Form::text('contentNumber', null, array('placeholder' => 'Name','class' => 'form-control', 'id'=>'txtContentNumber', 'onkeypress'=>'return numberValidate(event);')) !!}
+            </div>
         </div>
-    </div>
 
-    <div class="col-xs-4 col-sm-4 col-md-4">
-        <div class="form-group">
-            <label>From Date</label>
-            <div class="input-group date">
-                <div class="input-group-addon">
-                    <i class="fa fa-calendar"></i>
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>From Date</label>
+                <div class="input-group date">
+                    <div class="input-group-addon">
+                        <i class="fa fa-calendar"></i>
+                    </div>
+                    {!! Form::text('dateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker', 'onkeypress'=>'return false;')) !!}
                 </div>
-                {!! Form::text('dateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker', 'onkeypress'=>'return false;')) !!}
+                <!-- /.input group -->
             </div>
-            <!-- /.input group -->
         </div>
-    </div>
 
-    <div class="col-xs-4 col-sm-4 col-md-4">
-        <div class="form-group">
-            <label>To Date</label>
-            <div class="input-group date">
-                <div class="input-group-addon">
-                    <i class="fa fa-calendar"></i>
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>To Date</label>
+                <div class="input-group date">
+                    <div class="input-group-addon">
+                        <i class="fa fa-calendar"></i>
+                    </div>
+                    {!! Form::text('dateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtPeriodDate', 'onkeypress'=>'return false;')) !!}
                 </div>
-                {!! Form::text('dateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtPeriodDate', 'onkeypress'=>'return false;')) !!}
+                <!-- /.input group -->
             </div>
-            <!-- /.input group -->
         </div>
-    </div>
 
-    <div class="col-xs-12 col-sm-12 col-md-12 text-center">
-        {{ Form::submit('Submit', array('class' => 'btn btn-primary')) }}
-    </div>
-
-    <div class="col-xs-12 col-sm-12 col-md-12">
-        <div class="form-group">
-            <label id="lblMessage" />
+        <div class="col-xs-12 col-sm-12 col-md-12 text-center">
+            {{ Form::submit('Submit', array('class' => 'btn btn-primary')) }}
         </div>
-    </div>
 
-    <div class="col-md-12">
-        <!-- LINE CHART -->
-        <div class="box box-info">
-            <div class="box-header with-border">
-                <h3 id="graphHeader" class="box-title">View Density</h3>
-                <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                            </button>
-                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <div class="top-buffer">
+            </div>
+        </div>
+
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Content Name</label> 
+                {!! Form::text('content_name', null, array('placeholder' => 'Content Name','class' => 'form-control', 'id'=>'txtContentName', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Subject Section Name</label> 
+                {!! Form::text('subject_section_name', null, array('placeholder' => 'Subject Section Name','class' => 'form-control', 'id'=>'txtSubjectSectionName', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Subject Name</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-6 col-sm-6 col-md-6">
+            <div class="form-group">
+                <label>Registered From</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Registered From','class' => 'form-control', 'id'=>'txtRegisteredFrom', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-6 col-sm-6 col-md-6">
+            <div class="form-group">
+                <label>Registered To</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Registered To','class' => 'form-control', 'id'=>'txtRegisteredTo', 'disabled')) !!}
+            </div>
+        </div>
+
+
+        <div class="col-md-12">
+            <!-- LINE CHART -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 id="graphHeader" class="box-title">View Density</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                                </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                    </div>
                 </div>
-            </div>
-            <div class="box-body chart-responsive">
-                <div class="chart" id="line-chart-density"></div>
-            </div>
-            <!-- Loading (remove the following to stop the loading)-->
-            <div class="overlay">
-                <i class="fa fa-refresh fa-spin"></i>
-            </div>
-            <!-- /.box-body -->
-        </div>
-        <!-- /.box -->
-    </div>
-
-    <div class="col-md-12">
-        <!-- LINE CHART -->
-        <div class="box box-info">
-            <div class="box-header with-border">
-                <h3 id="graphHeader" class="box-title">Pause</h3>
-                <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                            </button>
-                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                <div class="box-body chart-responsive">
+                    <div class="chart" id="line-chart-density"></div>
                 </div>
+                <!-- Loading (remove the following to stop the loading)-->
+                <div class="overlay">
+                    <i class="fa fa-refresh fa-spin"></i>
+                </div>
+                <!-- /.box-body -->
             </div>
-            <div class="box-body chart-responsive">
-                <div class="chart" id="line-chart-pause"></div>
-            </div>
-            <!-- Loading (remove the following to stop the loading)-->
-            <div class="overlay">
-                <i class="fa fa-refresh fa-spin"></i>
-            </div>
-            <!-- /.box-body -->
+            <!-- /.box -->
         </div>
-        <!-- /.box -->
+
+        </br></br></br>
+        <div class="col-md-12">
+            <!-- LINE CHART -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 id="graphHeader" class="box-title">Pause</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                                </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="box-body chart-responsive">
+                    <div class="chart" id="line-chart-pause"></div>
+                </div>
+                <!-- Loading (remove the following to stop the loading)-->
+                <div class="overlay">
+                    <i class="fa fa-refresh fa-spin"></i>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
     </div>
-</div>
 {!! Form::close() !!}
 
 @endsection 
-
 
 
 @section('script') 
@@ -138,7 +173,14 @@
             success: function (data) {
                 $('.overlay').hide();
                 //graphHeader.innerText = 'View Density for '+ document.getElementById("txtContentNumber").value;
-                console.log(data.durationInSecond)
+                //console.log(data.durationInSecond)
+                console.log(data.contentInfo.contents_name);
+
+                document.getElementById('txtContentName').value = data.contentInfo.contents_name;
+                document.getElementById('txtSubjectSectionName').value = data.contentInfo.subject_section_name;
+                document.getElementById('txtSubjectName').value = data.contentInfo.subject_name;
+                document.getElementById('txtRegisteredFrom').value = data.contentInfo.registered_from;
+                document.getElementById('txtRegisteredTo').value = data.contentInfo.registered_to;
 
                 densityLine.setData(data.durationInSecond);
                 pauseLine.setData(data.durationInSecond);

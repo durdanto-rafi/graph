@@ -90,3 +90,5 @@ textarea {
    max-height: 350px; /* Fix a height here */
    overflow: auto; /* Optionally you can also use overflow: scroll; */
 }
+
+.top-buffer { margin-top:100px; }
