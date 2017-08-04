@@ -121,7 +121,7 @@ class GraphController extends Controller
 
             else
             {
-                if($log->state != 'D')
+                if($log->state != 'F')
                 {   
                     if($previousLog->event_action_number == 1 && $log->event_action_number == 1 && $previousLog->state == null)
                     {
@@ -207,10 +207,7 @@ class GraphController extends Controller
                                     INNER JOIN tbl_school_contents c ON c.school_contents_number = a.school_contents_number
                                     INNER JOIN tbl_school_subject_section d ON d.school_subject_section_number = c.school_subject_section_number
                                     INNER JOIN tbl_school_subject e ON e.school_subject_number = d.school_subject_number
-                                    WHERE
-                                    a.school_contents_number = ?
-                                    AND a.contents_download_datetime BETWEEN ?
-                                    AND ?
+                                    WHERE a.school_contents_number = ? AND a.contents_download_datetime BETWEEN ? AND ?
                                     AND a.history_upload_datetime IS NOT NULL
                                     AND a.duration IS NOT NULL
                                     AND a.player3_code IS NULL
@@ -244,6 +241,7 @@ class GraphController extends Controller
             $logByDuration = $this->getDuration($logs);
             if(count($logByDuration) == 1)
             {
+                // Creating array according to content duration
                 $duration = array_keys($logByDuration)[0];
                 for($i = 0; $i <= $duration; $i++)
                 {
@@ -333,9 +331,9 @@ class GraphController extends Controller
                     $previousEvent = $currentEvent;
                 }
                 $this->contentInfo['eventPerView'] = floor($this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount']);
-                $this->contentInfo['pauseRatio'] = $this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount'] * 100;
-                $this->contentInfo['forwardRatio'] = $this->contentInfo['totalForwardCount'] / $this->contentInfo['totalViewCount'] * 100;
-                $this->contentInfo['rewindRatio'] = $this->contentInfo['totalRewindCount'] / $this->contentInfo['totalViewCount'] * 100;
+                $this->contentInfo['pauseRatio'] = number_format(($this->contentInfo['totalPauseCount'] / $this->contentInfo['eventCount'] * 100),  1, '.', '');
+                $this->contentInfo['forwardRatio'] = number_format($this->contentInfo['totalForwardCount'] / $this->contentInfo['eventCount'] * 100,  1, '.', '');
+                $this->contentInfo['rewindRatio'] = number_format($this->contentInfo['totalRewindCount'] / $this->contentInfo['eventCount'] * 100,  1, '.', '');
                 
                 //dd(json_encode($durationInSecond));
                 //dd($this->contentInfo);

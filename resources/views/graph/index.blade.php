@@ -142,7 +142,7 @@
                     </div>
                 </div>
                 <div class="box-body chart-responsive">
-                    <div class="chart" id="line-chart-density"></div>
+                    <div class="chart graph-height" id="line-chart-density"></div>
                 </div>
                 <!-- Loading (remove the following to stop the loading)-->
                 <div class="overlay">
@@ -166,7 +166,7 @@
                     </div>
                 </div>
                 <div class="box-body chart-responsive">
-                    <div class="chart" id="line-chart-pause"></div>
+                    <div class="chart graph-height" id="line-chart-pause"></div>
                 </div>
                 <!-- Loading (remove the following to stop the loading)-->
                 <div class="overlay">
@@ -215,7 +215,13 @@
                 $('.overlay').hide();
                 //graphHeader.innerText = 'View Density for '+ document.getElementById("txtContentNumber").value;
                 //console.log(data.durationInSecond)
-                console.log(data.contentInfo.contents_name);
+                //console.log(data.contentInfo.contents_name);
+                if(data.durationInSecond.length == 0)
+                {
+                    swal("Sorry!", "Invalid content number");
+                    return;
+                }
+                
 
                 document.getElementById('txtContentName').value = data.contentInfo.contents_name;
                 document.getElementById('txtSubjectSectionName').value = data.contentInfo.subject_section_name;
@@ -234,9 +240,7 @@
                 pauseLine.setData(data.durationInSecond);
             },
             error: function (data) {
-                if (data.status === 422) {
-                    toastr.error('Something went wrong !');
-                }
+                swal("Sorry!", "Connection error");
             }
         });
 
@@ -293,5 +297,9 @@
         document.getElementById('txtForwardRatio').value = '';
         document.getElementById('txtRewindRatio').value = '';
     }
+
+    window.onload = function() {
+        clearData();
+    };
 </script>
 @stop
