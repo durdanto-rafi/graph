@@ -26,7 +26,5 @@ class TblSchool extends Model
         'vertical_index'
     ];
 
-    protected $guarded = [];
-
-        
+    protected $guarded = [];   
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use DB;
 use Illuminate\Http\Request;
+use App\Models\MstTopSubject;
 
 class GraphController extends Controller
 {
@@ -16,7 +17,8 @@ class GraphController extends Controller
     public function index()
     {
         //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
-        return view('graph.index');
+        $subjects = MstTopSubject::pluck("name","top_subject_number")->all();
+        return view('graph.index')->with('subjects', $subjects);
     }
 
     /**

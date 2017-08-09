@@ -17,6 +17,7 @@ class TblCommonSubject extends Model
 
     protected $fillable = [
         'name',
+        'top_subject_number',
         'enable',
         'vertical_index'
     ];

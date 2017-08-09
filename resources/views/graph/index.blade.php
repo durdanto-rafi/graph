@@ -13,12 +13,29 @@
     <div class="row">
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
-                <label>Content Number</label> 
-                {!! Form::text('contentNumber', null, array('placeholder' => 'Name','class' => 'form-control', 'id'=>'txtContentNumber', 'onkeypress'=>'return numberValidate(event);')) !!}
+                <label>Subject</label>
+                {!! Form::select('exam_type_id', $subjects, null, ['class'=>'form-control', 'id'=>'ddlExamType']) !!}
+                <!-- /.input group -->
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Content Number</label>
+                {!! Form::select('exam_type_id', [], null, ['class'=>'form-control', 'id'=>'ddlExamType']) !!}
+                <!-- /.input group -->
+            </div>
+        </div>
+
+        <div class="col-xs-4 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Rank</label>
+                {!! Form::select('exam_type_id', [], null, ['class'=>'form-control', 'id'=>'ddlExamType']) !!}
+                <!-- /.input group -->
+            </div>
+        </div>
+
+        <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
                 <label>From Date</label>
                 <div class="input-group date">
@@ -31,7 +48,7 @@
             </div>
         </div>
 
-        <div class="col-xs-4 col-sm-4 col-md-4">
+        <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
                 <label>To Date</label>
                 <div class="input-group date">
@@ -44,6 +61,7 @@
             </div>
         </div>
 
+
         <div class="col-xs-12 col-sm-12 col-md-12 text-center">
             {{ Form::submit('Submit', array('class' => 'btn btn-primary')) }}
         </div>
@@ -55,8 +73,8 @@
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
-                <label>Content Name</label> 
-                {!! Form::text('content_name', null, array('placeholder' => 'Content Name','class' => 'form-control', 'id'=>'txtContentName', 'disabled')) !!}
+                <label>Content Number</label> 
+                {!! Form::text('content_number', null, array('placeholder' => 'Content Name','class' => 'form-control', 'id'=>'txtContentNumber', 'disabled')) !!}
             </div>
         </div>
 
@@ -70,7 +88,7 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Subject Name</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                {!! Form::text('subject_name', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
             </div>
         </div>
 
@@ -91,42 +109,42 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Total Number of Event</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Total Number of Event','class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Total Number of View</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Total Number of View','class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Average events per view</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Average events per view','class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Pause Ratio</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtPauseRatio', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Pause Ratio','class' => 'form-control', 'id'=>'txtPauseRatio', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Forward Ratio</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtForwardRatio', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Forward Ratio','class' => 'form-control', 'id'=>'txtForwardRatio', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Rewind Ratio</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtRewindRatio', 'disabled')) !!}
+                {!! Form::text('subjectName', null, array('placeholder' => 'Rewind Ratio','class' => 'form-control', 'id'=>'txtRewindRatio', 'disabled')) !!}
             </div>
         </div>
 
@@ -138,7 +156,6 @@
                     <div class="box-tools pull-right">
                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                                 </button>
-                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
                     </div>
                 </div>
                 <div class="box-body chart-responsive">
@@ -162,7 +179,6 @@
                     <div class="box-tools pull-right">
                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                                 </button>
-                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
                     </div>
                 </div>
                 <div class="box-body chart-responsive">

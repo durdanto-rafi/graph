@@ -18,6 +18,7 @@ class TblSchoolSubject extends Model
     protected $fillable = [
         'school_number',
         'name',
+        'top_subject_number',
         'enable',
         'vertical_index'
     ];
