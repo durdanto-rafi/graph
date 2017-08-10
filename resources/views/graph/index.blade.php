@@ -14,7 +14,7 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Subject</label>
-                {!! Form::select('exam_type_id', $subjects, null, ['class'=>'form-control', 'id'=>'ddlExamType']) !!}
+                {!! Form::select('subject_number', ['' => '- Select -'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -22,7 +22,7 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Content Number</label>
-                {!! Form::select('exam_type_id', [], null, ['class'=>'form-control', 'id'=>'ddlExamType']) !!}
+                {!! Form::select('contentNumber', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -30,7 +30,7 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Rank</label>
-                {!! Form::select('exam_type_id', [], null, ['class'=>'form-control', 'id'=>'ddlExamType']) !!}
+                {!! Form::select('rank_number', ['' => '- Select -'] + $ranks, null, ['class'=>'form-control', 'id'=>'ddlRank']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -71,21 +71,14 @@
             </div>
         </div>
 
-        <div class="col-xs-4 col-sm-4 col-md-4">
-            <div class="form-group">
-                <label>Content Number</label> 
-                {!! Form::text('content_number', null, array('placeholder' => 'Content Name','class' => 'form-control', 'id'=>'txtContentNumber', 'disabled')) !!}
-            </div>
-        </div>
-
-        <div class="col-xs-4 col-sm-4 col-md-4">
+        <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
                 <label>Subject Section Name</label> 
                 {!! Form::text('subject_section_name', null, array('placeholder' => 'Subject Section Name','class' => 'form-control', 'id'=>'txtSubjectSectionName', 'disabled')) !!}
             </div>
         </div>
 
-        <div class="col-xs-4 col-sm-4 col-md-4">
+        <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
                 <label>Subject Name</label> 
                 {!! Form::text('subject_name', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
@@ -202,6 +195,7 @@
 @parent
 
 <script type="text/javascript">
+    $(".select2").select2();
     $('.overlay').hide();
 
     //Date picker
@@ -217,11 +211,27 @@
         format: 'MM/DD/YYYY h:mm A'
     });
 
+    // Loading Subjects's Contents 
+    $('#ddlSubject').change(function(){
+        var subject_number = $(this).val();
+        var token = $("input[name='_token']").val();
+        $.ajax({
+            url: "{{ route('subjectContents') }}",
+            method: 'POST',
+            data: {subject_number:subject_number, _token:token},
+            success: function(data) {
+                $('#ddlContentNumber').html('');
+                $('#ddlContentNumber').html(data.options);
+            }
+        });
+    }); 
+
     $('#frmGraph').on('submit', function (e) {
         e.preventDefault();
         $('.overlay').show();
         $("#line-chart-density").html("");
         $("#line-chart-pause").html("");
+
         clearData();
         $.ajax({
             url: "{{ route('graphData') }}",
@@ -229,9 +239,7 @@
             data: $(this).serialize(),
             success: function (data) {
                 $('.overlay').hide();
-                //graphHeader.innerText = 'View Density for '+ document.getElementById("txtContentNumber").value;
-                //console.log(data.durationInSecond)
-                //console.log(data.contentInfo.contents_name);
+                console.log(data);
                 if(data.durationInSecond.length == 0)
                 {
                     swal("Sorry!", "Invalid content number");
@@ -239,7 +247,7 @@
                 }
                 
 
-                document.getElementById('txtContentName').value = data.contentInfo.contents_name;
+                //document.getElementById('txtContentName').value = data.contentInfo.contents_name;
                 document.getElementById('txtSubjectSectionName').value = data.contentInfo.subject_section_name;
                 document.getElementById('txtSubjectName').value = data.contentInfo.subject_name;
                 document.getElementById('txtRegisteredFrom').value = data.contentInfo.registered_from;
@@ -300,7 +308,7 @@
 
     function clearData()
     {
-        document.getElementById('txtContentName').value = '';
+        //document.getElementById('txtContentName').value = '';
         document.getElementById('txtSubjectSectionName').value = '';
         document.getElementById('txtSubjectName').value = '';
         document.getElementById('txtRegisteredFrom').value = '';

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use DB;
 use Illuminate\Http\Request;
 use App\Models\MstTopSubject;
+use App\Models\MstDeviationValueRank;
 
 class GraphController extends Controller
 {
@@ -18,7 +19,8 @@ class GraphController extends Controller
     {
         //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
         $subjects = MstTopSubject::pluck("name","top_subject_number")->all();
-        return view('graph.index')->with('subjects', $subjects);
+        $ranks = MstDeviationValueRank::pluck("name","rank_number")->all();
+        return view('graph.index')->with('subjects', $subjects)->with('ranks', $ranks);
     }
 
     /**
@@ -87,70 +89,32 @@ class GraphController extends Controller
         //
     }
 
-    private function getDuration($logs)
+    /**
+     * Show the application getSubjectContents.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getSubjectContents(Request $request)
     {
-        // Group By Durations (BUG)
-        $durations = array();
-        foreach($logs as $log)
-        { 
-            $durations[$log->duration][] = $log;
-        }
+    	if($request->ajax()){
+    		$contents = DB::select("SELECT
+                                        a.school_contents_number
+                                    FROM
+                                        tbl_school_contents a
+                                    INNER JOIN tbl_school_subject_section b ON a.school_subject_section_number = b.school_subject_section_number
+                                    INNER JOIN tbl_school_subject c ON c.school_subject_number = b.school_subject_number
+                                    WHERE
+                                        c.top_subject_number = ?", [$request->subject_number]);
 
-        //dd(json_encode($durations));
-
-        // Getting Max used duration
-        $maxValue = 0;
-        $maxKey = 0;
-        foreach ($durations as $key => $duration)
-        {
-            if($maxValue < count($duration))
-            {
-                 $maxValue = count($duration);
-                 $maxKey = $key;
+            $formattedContents = array();
+            foreach($contents as $content)
+            { 
+                $formattedContents[$content->school_contents_number] = $content->school_contents_number;
             }
-        }
-
-        // Adjusting bug data calculating with original duration
-        $durations = array();
-        $previousLog = null;
-        foreach($logs as $log)
-        { 
-            if($previousLog == null)
-            {
-                $durations[$log->duration][] = $previousLog = $log;
-                continue;
-            }
-
-            else
-            {
-                if($log->state != 'F')
-                {   
-                    if($previousLog->event_action_number == 1 && $log->event_action_number == 1 && $previousLog->state == null)
-                    {
-                        $previousLog->state = $log->event_number;
-                        $log->state = $log->event_number;
-                    }
-                    $this->fixDuration($maxKey, $log);
-                    $durations[$log->duration][] = $log;
-                    $previousLog = $log;
-                }
-            }
-        }
-
-        //dd(json_encode($durations));
-      
-        return $durations;
-    }
-
-    private function fixDuration($realDuration, $log)
-    {
-        $calculateData = ($realDuration / $log->duration);
-
-        $log->duration = floor($calculateData * $log->duration);
-        //$log->progress_time = floor($calculateData * $log->progress_time);
-        $log->position = floor($calculateData * $log->position);
-
-        return $log;
+                                                
+            $data = view('utility.content-select', compact('formattedContents'))->render();
+            return response()->json(['options'=>$data]);
+    	}
     }
 
     /**
@@ -168,6 +132,7 @@ class GraphController extends Controller
 
     private function processData($contentNummber, $dateFrom, $dateTo)
     {
+        // Database query
         $logs = DB::transaction(function() use ($contentNummber, $dateFrom, $dateTo)
         {
             try 
@@ -342,5 +307,72 @@ class GraphController extends Controller
             }
         }
         return $durationInSecond;
+    }
+
+    // Getting duration
+    private function getDuration($logs)
+    {
+        // Group By Durations (BUG)
+        $durations = array();
+        foreach($logs as $log)
+        { 
+            $durations[$log->duration][] = $log;
+        }
+
+        //dd(json_encode($durations));
+
+        // Getting Max used duration
+        $maxValue = 0;
+        $maxKey = 0;
+        foreach ($durations as $key => $duration)
+        {
+            if($maxValue < count($duration))
+            {
+                 $maxValue = count($duration);
+                 $maxKey = $key;
+            }
+        }
+
+        // Adjusting bug data calculating with original duration
+        $durations = array();
+        $previousLog = null;
+        foreach($logs as $log)
+        { 
+            if($previousLog == null)
+            {
+                $durations[$log->duration][] = $previousLog = $log;
+                continue;
+            }
+
+            else
+            {
+                if($log->state != 'F')
+                {   
+                    if($previousLog->event_action_number == 1 && $log->event_action_number == 1 && $previousLog->state == null)
+                    {
+                        $previousLog->state = $log->event_number;
+                        $log->state = $log->event_number;
+                    }
+                    $this->fixDuration($maxKey, $log);
+                    $durations[$log->duration][] = $log;
+                    $previousLog = $log;
+                }
+            }
+        }
+
+        //dd(json_encode($durations));
+      
+        return $durations;
+    }
+
+    private function fixDuration($realDuration, $log)
+    {
+        $calculateData = ($realDuration / $log->duration);
+
+        $log->duration = floor($calculateData * $log->duration);
+        //$log->progress_time = floor($calculateData * $log->progress_time);
+        $log->position = floor($calculateData * $log->position);
+
+        return $log;
     }
 }
