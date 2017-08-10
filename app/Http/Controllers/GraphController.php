@@ -97,12 +97,14 @@ class GraphController extends Controller
     public function getSubjectContents(Request $request)
     {
     	if($request->ajax()){
-    		$contents = DB::select("SELECT
-                                        a.school_contents_number
+    		$contents = DB::select("SELECT DISTINCT
+                                        d.school_contents_number
                                     FROM
                                         tbl_school_contents a
                                     INNER JOIN tbl_school_subject_section b ON a.school_subject_section_number = b.school_subject_section_number
                                     INNER JOIN tbl_school_subject c ON c.school_subject_number = b.school_subject_number
+                                    INNER JOIN log_school_contents_history_student d ON d.school_contents_number = a.school_contents_number
+                                    INNER JOIN log_school_contents_history_student_event e ON d.history_number = e.history_number
                                     WHERE
                                         c.top_subject_number = ?", [$request->subject_number]);
 
