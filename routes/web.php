@@ -11,10 +11,10 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Route::resource('graph', 'GraphController');
 Route::post('graphData', ['as'=>'graphData','uses'=>'GraphController@getGraphData']);
 Route::post('subjectContents', ['as'=>'subjectContents','uses'=>'GraphController@getSubjectContents']);
+
+Route::resource('login','LoginController');
+Route::get('logout', ['as'=>'logout','uses'=>'LoginController@logout']);

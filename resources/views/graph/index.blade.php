@@ -14,7 +14,7 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Subject</label>
-                {!! Form::select('subject_number', ['' => '- Select -'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
+                {!! Form::select('subject', ['' => '- Select -'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -30,7 +30,7 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Rank</label>
-                {!! Form::select('rank_number', ['' => '- Select -'] + $ranks, null, ['class'=>'form-control', 'id'=>'ddlRank']) !!}
+                {!! Form::select('rank', ['' => '- Select -'] + $ranks, null, ['class'=>'form-control', 'id'=>'ddlRank']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -42,7 +42,7 @@
                     <div class="input-group-addon">
                         <i class="fa fa-calendar"></i>
                     </div>
-                    {!! Form::text('dateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker', 'onkeypress'=>'return false;')) !!}
+                    {!! Form::text('dateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtFromDateInput', 'onkeypress'=>'return false;')) !!}
                 </div>
                 <!-- /.input group -->
             </div>
@@ -55,7 +55,7 @@
                     <div class="input-group-addon">
                         <i class="fa fa-calendar"></i>
                     </div>
-                    {!! Form::text('dateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtPeriodDate', 'onkeypress'=>'return false;')) !!}
+                    {!! Form::text('dateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtToDateInput', 'onkeypress'=>'return false;')) !!}
                 </div>
                 <!-- /.input group -->
             </div>
@@ -99,21 +99,28 @@
             </div>
         </div>
 
-        <div class="col-xs-4 col-sm-4 col-md-4">
+        <div class="col-xs-3 col-sm-3 col-md-3">
             <div class="form-group">
                 <label>Total Number of Event</label> 
                 {!! Form::text('subjectName', null, array('placeholder' => 'Total Number of Event','class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
             </div>
         </div>
 
-        <div class="col-xs-4 col-sm-4 col-md-4">
+        <div class="col-xs-3 col-sm-3 col-md-3">
             <div class="form-group">
                 <label>Total Number of View</label> 
                 {!! Form::text('subjectName', null, array('placeholder' => 'Total Number of View','class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
             </div>
         </div>
 
-        <div class="col-xs-4 col-sm-4 col-md-4">
+        <div class="col-xs-3 col-sm-3 col-md-3">
+            <div class="form-group">
+                <label>Student Count</label> 
+                {!! Form::text('subjectName', null, array('placeholder' => 'Student count','class' => 'form-control', 'id'=>'txtTotalStudent', 'disabled')) !!}
+            </div>
+        </div>
+
+        <div class="col-xs-3 col-sm-3 col-md-3">
             <div class="form-group">
                 <label>Average events per view</label> 
                 {!! Form::text('subjectName', null, array('placeholder' => 'Average events per view','class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
@@ -228,10 +235,22 @@
 
     $('#frmGraph').on('submit', function (e) {
         e.preventDefault();
-        $('.overlay').show();
-        $("#line-chart-density").html("");
-        $("#line-chart-pause").html("");
 
+        // Validation
+        var error = new Array();
+        var dataArray = $("#frmGraph").serializeArray();
+        $(dataArray).each(function(i, field){
+            if(field.value.length == 0){
+                error.push(field.name);
+            }
+        });
+
+        if(error.length > 0){
+            swal("Need to fillup !", error.join("\n"));
+            return false;
+        }
+
+        $('.overlay').show();
         clearData();
         $.ajax({
             url: "{{ route('graphData') }}",
@@ -239,10 +258,11 @@
             data: $(this).serialize(),
             success: function (data) {
                 $('.overlay').hide();
-                console.log(data);
+
+                //console.log(data);
                 if(data.durationInSecond.length == 0)
                 {
-                    swal("Sorry!", "Invalid content number");
+                    swal("Sorry!", "No data");
                     return;
                 }
                 
@@ -259,12 +279,13 @@
                 document.getElementById('txtPauseRatio').value = data.contentInfo.pauseRatio;
                 document.getElementById('txtForwardRatio').value = data.contentInfo.forwardRatio;
                 document.getElementById('txtRewindRatio').value = data.contentInfo.rewindRatio;
+                document.getElementById('txtTotalStudent').value = data.contentInfo.totalStudentCount;
 
                 densityLine.setData(data.durationInSecond);
                 pauseLine.setData(data.durationInSecond);
             },
             error: function (data) {
-                swal("Sorry!", "Connection error");
+                swal("Sorry!", "Something went wrong");
             }
         });
 
@@ -308,7 +329,12 @@
 
     function clearData()
     {
-        //document.getElementById('txtContentName').value = '';
+        var startDate = new Date("2015-01-01");
+        $("#txtFromDateInput").datepicker('setDate', startDate);
+
+        var today = new Date();
+        $("#txtToDateInput").datepicker('setDate', today.toString('yyyy-MM-dd'));
+
         document.getElementById('txtSubjectSectionName').value = '';
         document.getElementById('txtSubjectName').value = '';
         document.getElementById('txtRegisteredFrom').value = '';
@@ -320,6 +346,11 @@
         document.getElementById('txtPauseRatio').value = '';
         document.getElementById('txtForwardRatio').value = '';
         document.getElementById('txtRewindRatio').value = '';
+        document.getElementById('txtTotalStudent').value = '';
+
+        $("#line-chart-density").html("");
+        $("#line-chart-pause").html("");
+
     }
 
     window.onload = function() {

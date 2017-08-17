@@ -5,9 +5,9 @@
         <!-- sidebar menu: : style can be found in sidebar.less -->
         <ul class="sidebar-menu">
             <li class="header">MAIN OPTION</li>
-            <li class="treeview {{ Request::is('answer') ? 'active' : '' }}">
+            <li class="treeview {{ Request::is('graph') ? 'active' : '' }}">
                 <a href="#">
-                    <i i class="fa fa-check-square-o"></i> <span>Answer</span>
+                    <i i class="fa fa-check-square-o"></i> <span>Graph</span>
                     <span class="pull-right-container">
                 </span>
                 </a>

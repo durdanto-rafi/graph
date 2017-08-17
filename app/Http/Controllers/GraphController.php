@@ -15,12 +15,21 @@ class GraphController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
-        $subjects = MstTopSubject::pluck("name","top_subject_number")->all();
-        $ranks = MstDeviationValueRank::pluck("name","rank_number")->all();
-        return view('graph.index')->with('subjects', $subjects)->with('ranks', $ranks);
+
+        $user = $request->session()->get('user');
+        if($user != null)
+        {
+            $subjects = MstTopSubject::pluck("name","top_subject_number")->all();
+            $ranks = MstDeviationValueRank::pluck("name","rank_number")->all();
+            return view('graph.index')->with('subjects', $subjects)->with('ranks', $ranks);
+        }
+        else
+        {
+            return redirect()->route('login.index');
+        }
     }
 
     /**
@@ -105,6 +114,7 @@ class GraphController extends Controller
                                     INNER JOIN tbl_school_subject c ON c.school_subject_number = b.school_subject_number
                                     INNER JOIN log_school_contents_history_student d ON d.school_contents_number = a.school_contents_number
                                     INNER JOIN log_school_contents_history_student_event e ON d.history_number = e.history_number
+                                    INNER JOIN tbl_trial_test_result f ON f.student_number = d.student_number
                                     WHERE
                                         c.top_subject_number = ?", [$request->subject_number]);
 
@@ -127,65 +137,74 @@ class GraphController extends Controller
     public function getGraphData(Request $request)
     {
     	if($request->ajax()){
-            $durationInSecond = $this->processData($request->contentNumber, $request->dateFrom, $request->dateTo);
+            $durationInSecond = $this->processData($request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
     		return response()->json(['durationInSecond'=> $durationInSecond, 'contentInfo'=> $this->contentInfo]);
     	}
     }
 
-    private function processData($contentNummber, $dateFrom, $dateTo)
+    private function processData($contentNummber, $dateFrom, $dateTo, $rank, $subject)
     {
         // Database query
-        $logs = DB::transaction(function() use ($contentNummber, $dateFrom, $dateTo)
+        $logs = DB::transaction(function() use ($contentNummber, $dateFrom, $dateTo, $rank, $subject)
         {
             try 
             {
                 DB::statement("SET @previousEventActionNumber = NULL");
                 DB::statement("SET @prePreviousEventActionNumber = NULL");
                 $data = DB::select("SELECT
-                                    (
-                                    CASE
-                                    WHEN (
-                                    @previousEventActionNumber = 4
-                                    AND b.event_action_number = 1
-                                    ) THEN
-                                    'F'
-                                    WHEN (
-                                    @previousEventActionNumber = 1
-                                    AND @prePreviousEventActionNumber = 4
-                                    AND b.event_action_number = 1
-                                    ) THEN
-                                    'F'
-                                    END
-                                    ) AS state,
-                                    b.event_number,
-                                    b.history_number,
-                                    FLOOR(a.duration / 1000) duration,
-                                    FLOOR(b.progress_time / 1000) progress_time,
-                                    FLOOR(b.position / 1000) position,
-                                    b.event_action_number,
-                                    b.speed_number,
-                                    c.name as contents_name,
-                                    d.name as subject_section_name,
-                                    e.name as subject_name,
-                                    a.registered_datetime as log_registered_day,
-                                    @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
-                                    @previousEventActionNumber := b.event_action_number No_Need1
+                                        (
+                                            CASE
+                                            WHEN (
+                                                @previousEventActionNumber = 4
+                                                AND b.event_action_number = 1
+                                            ) THEN
+                                                'F'
+                                            WHEN (
+                                                @previousEventActionNumber = 1
+                                                AND @prePreviousEventActionNumber = 4
+                                                AND b.event_action_number = 1
+                                            ) THEN
+                                                'F'
+                                            END
+                                        ) AS state,
+                                        b.event_number,
+                                        b.history_number,
+                                        FLOOR(a.duration / 1000) duration,
+                                        FLOOR(b.progress_time / 1000) progress_time,
+                                        FLOOR(b.position / 1000) position,
+                                        b.event_action_number,
+                                        b.speed_number,
+                                        c. NAME AS contents_name,
+                                        d. NAME AS subject_section_name,
+                                        e. NAME AS subject_name,
+                                        a.student_number,
+                                        a.registered_datetime AS log_registered_day,
+                                        @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
+                                        @previousEventActionNumber := b.event_action_number No_Need1
                                     FROM
-                                    log_school_contents_history_student a
+                                        log_school_contents_history_student a
                                     INNER JOIN log_school_contents_history_student_event b ON a.history_number = b.history_number
                                     INNER JOIN tbl_school_contents c ON c.school_contents_number = a.school_contents_number
                                     INNER JOIN tbl_school_subject_section d ON d.school_subject_section_number = c.school_subject_section_number
                                     INNER JOIN tbl_school_subject e ON e.school_subject_number = d.school_subject_number
-                                    WHERE a.school_contents_number = ? AND a.contents_download_datetime BETWEEN ? AND ?
+                                    INNER JOIN tbl_trial_test_result f ON f.student_number = a.student_number
+                                    WHERE
+                                        a.school_contents_number = ?
+                                    AND a.contents_download_datetime BETWEEN ?
+                                    AND ?
+                                    AND f.deviation_rank = ?
+                                    AND f.top_subject_number = ?
                                     AND a.history_upload_datetime IS NOT NULL
                                     AND a.duration IS NOT NULL
                                     AND a.player3_code IS NULL
                                     AND b.event_action_number <> 3 -- Auto playback
                                     -- Changing position in pause mode
                                     AND ! (
-                                    b.event_action_number = 1
-                                    AND b.speed_number = 0
-                                    ) order by a.registered_datetime", [$contentNummber, $dateFrom, $dateTo]);
+                                        b.event_action_number = 1
+                                        AND b.speed_number = 0
+                                    )
+                                    ORDER BY
+                                        a.registered_datetime;", [$contentNummber, $dateFrom, $dateTo, $rank, $subject]);
                 return $data;
 
             } catch (\Exception $e) {
@@ -205,6 +224,14 @@ class GraphController extends Controller
                 $histories[$log->history_number][] = $log;
             }
             $this->contentInfo['totalViewCount'] = count($histories);
+
+            // Getting total Student Count
+            $students = array();
+            foreach($logs as $log)
+            { 
+                $students[$log->student_number][] = $log;
+            }
+            $this->contentInfo['totalStudentCount'] = count($students);
 
 
             $logByDuration = $this->getDuration($logs);
