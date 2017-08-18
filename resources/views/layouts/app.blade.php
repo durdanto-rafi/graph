@@ -34,6 +34,8 @@
     <!-- AdminLTE Skins. Choose a skin from the css/skins
        folder instead of downloading all of them to reduce the load. -->
     <link href="{{ asset('css/_all-skins.min.css') }}" rel="stylesheet">
+    <!-- D3 -->
+    <link href="{{ asset('css/d3.css') }}" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -114,6 +116,8 @@
     <script src="{{ asset('/js/sweetalert-dev.js') }}"></script>
     <!-- Custom -->
     <script src="{{ asset('/js/custom.js') }}"></script>
+    <!-- D3 -->
+    <script src="{{ asset('/js/d3.v3.min.js') }}"></script>
 @show
 </html>
 

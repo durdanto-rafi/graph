@@ -30,7 +30,7 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Rank</label>
-                {!! Form::select('rank', ['' => '- Select -'] + $ranks, null, ['class'=>'form-control', 'id'=>'ddlRank']) !!}
+                {!! Form::select('rank',  $ranks, null, ['class'=>'form-control select2', 'id'=>'ddlRank', 'multiple'=>'multiple', 'style'=>'width: 100%;']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -192,6 +192,10 @@
             </div>
             <!-- /.box -->
         </div>
+        <div class="col-md-12">
+                <div id="chart"></div>
+            
+        </div>
     </div>
 {!! Form::close() !!}
 
@@ -204,6 +208,7 @@
 <script type="text/javascript">
     $(".select2").select2();
     $('.overlay').hide();
+    var d3Data;
 
     //Date picker
     $('.datepicker').datepicker({
@@ -266,8 +271,6 @@
                     return;
                 }
                 
-
-                //document.getElementById('txtContentName').value = data.contentInfo.contents_name;
                 document.getElementById('txtSubjectSectionName').value = data.contentInfo.subject_section_name;
                 document.getElementById('txtSubjectName').value = data.contentInfo.subject_name;
                 document.getElementById('txtRegisteredFrom').value = data.contentInfo.registered_from;
@@ -283,6 +286,20 @@
 
                 densityLine.setData(data.durationInSecond);
                 pauseLine.setData(data.durationInSecond);
+
+                jsonArr = [];
+                for (var i = 0; i < data.durationInSecond.length; i++) {
+                    jsonArr.push({
+                        x: data.durationInSecond[i].second,
+                        y: data.durationInSecond[i].viewCount
+                    });
+                }
+                console.log(JSON.stringify(jsonArr));
+                d3Data = [
+                            [{'x':1,'y':0},{'x':2,'y':5},{'x':3,'y':10},{'x':4,'y':0},{'x':5,'y':6},{'x':6,'y':11},{'x':7,'y':9},{'x':8,'y':4},{'x':9,'y':11},{'x':10,'y':2}]
+                        ];
+                d3Load(d3Data);
+                
             },
             error: function (data) {
                 swal("Sorry!", "Something went wrong");
@@ -329,12 +346,6 @@
 
     function clearData()
     {
-        var startDate = new Date("2015-01-01");
-        $("#txtFromDateInput").datepicker('setDate', startDate);
-
-        var today = new Date();
-        $("#txtToDateInput").datepicker('setDate', today.toString('yyyy-MM-dd'));
-
         document.getElementById('txtSubjectSectionName').value = '';
         document.getElementById('txtSubjectName').value = '';
         document.getElementById('txtRegisteredFrom').value = '';
@@ -354,7 +365,178 @@
     }
 
     window.onload = function() {
+        var startDate = new Date("2015-01-01");
+        $("#txtFromDateInput").datepicker('setDate', startDate);
+
+        var today = new Date();
+        $("#txtToDateInput").datepicker('setDate', today.toString('yyyy-MM-dd'));
         clearData();
+        //d3Load([]);
     };
+
+    // D3
+    //function d3Load(d3Data){
+
+    //************************************************************
+    // Data notice the structure
+    //************************************************************
+    
+        d3Data = [
+                            [{'x':1,'y':0},{'x':2,'y':5},{'x':3,'y':10},{'x':4,'y':0},{'x':5,'y':6},{'x':6,'y':11},{'x':7,'y':9},{'x':8,'y':4},{'x':9,'y':11},{'x':10,'y':2}]
+                        ];
+        var colors = [
+            'steelblue',
+            'green',
+            'red',
+            'purple'
+        ]
+        
+        
+        //************************************************************
+        // Create Margins and Axis and hook our zoom function
+        //************************************************************
+        var margin = {top: 20, right: 30, bottom: 30, left: 50},
+            width = $("#chart").parent().width() - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+            
+        var x = d3.scale.linear()
+            .domain([0, 12])
+            .range([0, width]);
+        
+        var y = d3.scale.linear()
+            .domain([-1, 16])
+            .range([height, 0]);
+            
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .tickSize(-height)
+            .tickPadding(10)	
+            .tickSubdivide(true)	
+            .orient("bottom");	
+            
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .tickPadding(10)
+            .tickSize(-width)
+            .tickSubdivide(true)	
+            .orient("left");
+            
+        var zoom = d3.behavior.zoom()
+            .x(x)
+            .y(y)
+            .scaleExtent([1, 10])
+            .on("zoom", zoomed);	
+            
+            
+        
+            
+            
+        //************************************************************
+        // Generate our SVG object
+        //************************************************************	
+        var svg = d3.select("#chart").append("svg")
+            .call(zoom)
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+        
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+        
+        svg.append("g")
+            .attr("class", "y axis")
+            .append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("y", (-margin.left) + 10)
+            .attr("x", -height/2)
+            .text('Axis Label');	
+        
+        svg.append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", width)
+            .attr("height", height);
+            
+            
+            
+            
+            
+        //************************************************************
+        // Create D3 line object and draw data on our SVG object
+        //************************************************************
+        var line = d3.svg.line()
+            .interpolate("linear")	
+            .x(function(d) { return x(d.x); })
+            .y(function(d) { return y(d.y); });		
+            
+        svg.selectAll('.line')
+            .data(d3Data)
+            .enter()
+            .append("path")
+            .attr("class", "line")
+            .attr("clip-path", "url(#clip)")
+            .attr('stroke', function(d,i){ 			
+                return colors[i%colors.length];
+            })
+            .attr("d", line);		
+            
+            
+            
+            
+        //************************************************************
+        // Draw points on SVG object based on the data given
+        //************************************************************
+        var points = svg.selectAll('.dots')
+            .data(d3Data)
+            .enter()
+            .append("g")
+            .attr("class", "dots")
+            .attr("clip-path", "url(#clip)");	
+        
+        points.selectAll('.dot')
+            .data(function(d, index){ 		
+                var a = [];
+                d.forEach(function(point,i){
+                    a.push({'index': index, 'point': point});
+                });		
+                return a;
+            })
+            .enter()
+            .append('circle')
+            .attr('class','dot')
+            .attr("r", 2.5)
+            .attr('fill', function(d,i){ 	
+                return colors[d.index%colors.length];
+            })	
+            .attr("transform", function(d) { 
+                return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
+            );
+    //}
+        
+    
+        
+        
+        
+        
+    //************************************************************
+    // Zoom specific updates
+    //************************************************************
+    function zoomed() {
+        svg.select(".x.axis").call(xAxis);
+        svg.select(".y.axis").call(yAxis);   
+        svg.selectAll('path.line').attr('d', line);  
+    
+        points.selectAll('circle').attr("transform", function(d) { 
+            return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
+        );  
+    }
 </script>
 @stop
