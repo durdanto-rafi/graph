@@ -30,7 +30,7 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Rank</label>
-                {!! Form::select('rank',  $ranks, null, ['class'=>'form-control', 'id'=>'ddlRank']) !!}
+                {!! Form::select('rank',  $ranks, null, ['class'=>'form-control select2', 'id'=>'ddlRank', 'multiple'=>'multiple', 'style'=>'width: 100%;']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -136,30 +136,13 @@
             </div>
         </div>
 
-        <div class="col-xs-4 col-sm-4 col-md-4">
+        <div class="col-xs-12 col-sm-12 col-md-12">
             <div class="form-group">
-                <label>Pause Ratio</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Pause Ratio','class' => 'form-control', 'id'=>'txtPauseRatio', 'disabled')) !!}
+                <label>Events Ratio (%)</label> 
+                <canvas id="canEventsRatio"></canvas>
             </div>
         </div>
-
-        <div class="col-xs-4 col-sm-4 col-md-4">
-            <div class="form-group">
-                <label>Forward Ratio</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Forward Ratio','class' => 'form-control', 'id'=>'txtForwardRatio', 'disabled')) !!}
-            </div>
-        </div>
-
-        <div class="col-xs-4 col-sm-4 col-md-4">
-            <div class="form-group">
-                <label>Rewind Ratio</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Rewind Ratio','class' => 'form-control', 'id'=>'txtRewindRatio', 'disabled')) !!}
-            </div>
-        </div>
-
-        <div id="chart-container">FusionCharts will render here</div>
-
-        <canvas id="MeSeStatusCanvas"></canvas>
+        
     </div>
     <div class="col-md-8">
         <div class="col-md-12">
@@ -275,6 +258,7 @@
         // Validation
         var error = new Array();
         var dataArray = $("#frmGraph").serializeArray();
+        console.log(dataArray);
         $(dataArray).each(function(i, field){
             if(field.value.length == 0){
                 error.push(field.name);
@@ -288,10 +272,18 @@
 
         $('.overlay').show();
         clearData();
+
+        var subject = $("#ddlSubject").val();
+        var contentNumber = $("#ddlContentNumber").val();
+        var rank = $("#ddlRank").val();
+        var dateFrom = $("#txtFromDateInput").val();
+        var dateTo = $("#txtToDateInput").val();
+        var token = $("input[name='_token']").val();
+
         $.ajax({
             url: "{{ route('graphData') }}",
             method: 'POST',
-            data: $(this).serialize(),
+            data: {'subject':subject, 'contentNumber':contentNumber, 'rank':rank, 'dateFrom':dateFrom, 'dateTo':dateTo, _token:token},
             success: function (data) {
                 $('.overlay').hide();
 
@@ -310,9 +302,6 @@
                 document.getElementById('txtTotalEvent').value = data.contentInfo.eventCount;
                 document.getElementById('txtTotalView').value = data.contentInfo.totalViewCount;
                 document.getElementById('txtEventPerView').value = data.contentInfo.eventPerView;
-                document.getElementById('txtPauseRatio').value = data.contentInfo.pauseRatio;
-                document.getElementById('txtForwardRatio').value = data.contentInfo.forwardRatio;
-                document.getElementById('txtRewindRatio').value = data.contentInfo.rewindRatio;
                 document.getElementById('txtTotalStudent').value = data.contentInfo.totalStudentCount;
 
                 densityLine.setData(data.durationInSecond);
@@ -325,7 +314,7 @@
                         y: data.durationInSecond[i].viewCount
                     });
                 }
-                sideBar2();
+                drawEventsRatio(data.contentInfo.pauseRatio, data.contentInfo.forwardRatio, data.contentInfo.rewindRatio);
                 //console.log(JSON.stringify(jsonArr));
                 d3Data = [
                             [{'x':1,'y':0},{'x':2,'y':5},{'x':3,'y':10},{'x':4,'y':0},{'x':5,'y':6},{'x':6,'y':11},{'x':7,'y':9},{'x':8,'y':4},{'x':9,'y':11},{'x':10,'y':2}]
@@ -334,7 +323,7 @@
                 
             },
             error: function (data) {
-                swal("Sorry!", "Something went wrong");
+                swal("Sorry!", JSON.stringify(data));
             }
         });
 
@@ -386,14 +375,12 @@
         document.getElementById('txtTotalEvent').value = '';
         document.getElementById('txtTotalView').value = '';
         document.getElementById('txtEventPerView').value = '';
-        document.getElementById('txtPauseRatio').value = '';
-        document.getElementById('txtForwardRatio').value = '';
-        document.getElementById('txtRewindRatio').value = '';
         document.getElementById('txtTotalStudent').value = '';
 
         $("#line-chart-density").html("");
         $("#line-chart-pause").html("");
 
+        drawEventsRatio(0,0,0);
     }
 
     window.onload = function() {
@@ -572,82 +559,21 @@
         );  
     }
 
+    // Drawing Event's Ratio
+    function drawEventsRatio(pause, froward, rewind){
+        var MeSeContext = document.getElementById("canEventsRatio").getContext("2d");
 
-    // Side Bar
-    function sideBar()
-    {
-        FusionCharts.ready(function () {
-            var topStores = new FusionCharts({
-                type: 'bar2d',
-                renderAt: 'chart-container',
-                width: '400',
-                height: '200',
-                dataFormat: 'json',
-                dataSource: {
-                    "chart": {
-                        "caption": "Top 5 Stores by Sales",
-                        "subCaption": "Last month",
-                        "yAxisName": "Sales (In USD)",
-                        "paletteColors": "#0075c2",
-                        "bgColor": "#ffffff",
-                        "showBorder": "0",
-                        "showCanvasBorder": "0",
-                        "usePlotGradientColor": "0",
-                        "plotBorderAlpha": "10",
-                        "placeValuesInside": "1",
-                        "valueFontColor": "#ffffff",
-                        "showAxisLines": "1",
-                        "axisLineAlpha": "25",
-                        "divLineAlpha": "10",
-                        "alignCaptionWithCanvas": "0",
-                        "showAlternateVGridColor": "0",
-                        "captionFontSize": "14",
-                        "subcaptionFontSize": "14",
-                        "subcaptionFontBold": "0",
-                        "toolTipColor": "#ffffff",
-                        "toolTipBorderThickness": "0",
-                        "toolTipBgColor": "#000000",
-                        "toolTipBgAlpha": "80",
-                        "toolTipBorderRadius": "2",
-                        "toolTipPadding": "5"
-                    },
-                    
-                    "data": [
-                        {
-                            "label": "Pause(%)",
-                            "value": "13"
-                        }, 
-                        {
-                            "label": "Rewind(%)",
-                            "value": "33"
-                        }, 
-                        {
-                            "label": "Forward(%)",
-                            "value": "53"
-                        }
-                    ]
-                }
-            })
-            .render();
-        });
-    }
-
-    // Side Bar 2
-    function sideBar2(){
-        var MeSeContext = document.getElementById("MeSeStatusCanvas").getContext("2d");
-
-        MeSeContext.height = 50;
+        MeSeContext.height = 20;
         var MeSeData = {
             labels: [
-                "ME",
-                "SE",
-                "SE"
+                "Pause",
+                "Forward",
+                "Rewind"
             ],
             datasets: [{
-                label: "Test",
-                data: [16, 5, 5],
-                backgroundColor: ["#669911", "#119966","#669911"],
-                hoverBackgroundColor: ["#66A2EB", "#FCCE56","#66A2EB"]
+                data: [pause, froward, rewind],
+                backgroundColor: ["#FF0000", "#0000CD","#669911"],
+                hoverBackgroundColor: ["#66A2EB", "#FCCE56", "#008000"]
             }]
         };
 
@@ -655,14 +581,17 @@
             type: 'horizontalBar',
             data: MeSeData,
             options: {
+                legend: {
+                    display: false
+                },
+                animation: {
+                    duration: 0
+                },
                 scales: {
                     xAxes: [{
-                        ticks: {
-                            min: 0
-                        }
                     }],
                     yAxes: [{
-                        stacked: true
+                        barPercentage: 0.4
                     }]
                 }
             }

@@ -91,6 +91,6 @@ textarea {
    overflow: auto; /* Optionally you can also use overflow: scroll; */
 }
 
-.top-buffer { margin-top:100px; }
+.top-buffer { margin-top:50px; }
 
 .graph-height { height : 250px; }

@@ -147,8 +147,10 @@ class GraphController extends Controller
         // Database query
         $logs = DB::transaction(function() use ($contentNummber, $dateFrom, $dateTo, $rank, $subject)
         {
+            $ranks = implode(",", (array)$rank);
             try 
             {
+                //DB::enableQueryLog();
                 DB::statement("SET @previousEventActionNumber = NULL");
                 DB::statement("SET @prePreviousEventActionNumber = NULL");
                 $data = DB::select("SELECT
@@ -192,7 +194,7 @@ class GraphController extends Controller
                                         a.school_contents_number = ?
                                     AND a.contents_download_datetime BETWEEN ?
                                     AND ?
-                                    AND f.deviation_rank = ?
+                                    AND f.deviation_rank IN (?)
                                     AND f.top_subject_number = ?
                                     AND a.history_upload_datetime IS NOT NULL
                                     AND a.duration IS NOT NULL
@@ -204,7 +206,9 @@ class GraphController extends Controller
                                         AND b.speed_number = 0
                                     )
                                     ORDER BY
-                                        a.registered_datetime;", [$contentNummber, $dateFrom, $dateTo, $rank, $subject]);
+                                        a.registered_datetime;", [$contentNummber, $dateFrom, $dateTo, $ranks, $subject]);
+
+                //dd(DB::getQueryLog());
                 return $data;
 
             } catch (\Exception $e) {
@@ -219,18 +223,14 @@ class GraphController extends Controller
         {
             // Getting total View Count
             $histories = array();
-            foreach($logs as $log)
-            { 
-                $histories[$log->history_number][] = $log;
-            }
-            $this->contentInfo['totalViewCount'] = count($histories);
-
             // Getting total Student Count
             $students = array();
             foreach($logs as $log)
             { 
+                $histories[$log->history_number][] = $log;
                 $students[$log->student_number][] = $log;
             }
+            $this->contentInfo['totalViewCount'] = count($histories);
             $this->contentInfo['totalStudentCount'] = count($students);
 
 
