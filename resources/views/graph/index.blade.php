@@ -10,18 +10,18 @@
 @endif 
 
 {!! Form::open(array('id'=>'frmGraph')) !!}
-    <div class="row">
+    <div class="col-xs-4 col-sm-4 col-md-4">
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Subject</label>
-                {!! Form::select('subject', ['' => '- Select -'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
+                {!! Form::select('subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
                 <!-- /.input group -->
             </div>
         </div>
 
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
-                <label>Content Number</label>
+                <label>Content</label>
                 {!! Form::select('contentNumber', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
                 <!-- /.input group -->
             </div>
@@ -30,7 +30,7 @@
         <div class="col-xs-4 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Rank</label>
-                {!! Form::select('rank',  $ranks, null, ['class'=>'form-control select2', 'id'=>'ddlRank', 'multiple'=>'multiple', 'style'=>'width: 100%;']) !!}
+                {!! Form::select('rank',  $ranks, null, ['class'=>'form-control', 'id'=>'ddlRank']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -61,7 +61,6 @@
             </div>
         </div>
 
-
         <div class="col-xs-12 col-sm-12 col-md-12 text-center">
             {{ Form::submit('Submit', array('class' => 'btn btn-primary')) }}
         </div>
@@ -73,57 +72,67 @@
 
         <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
-                <label>Subject Section Name</label> 
-                {!! Form::text('subject_section_name', null, array('placeholder' => 'Subject Section Name','class' => 'form-control', 'id'=>'txtSubjectSectionName', 'disabled')) !!}
+                <label>Section Name</label> 
+                {!! Form::text('subject_section_name', null, array('class' => 'form-control', 'id'=>'txtSubjectSectionName', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
                 <label>Subject Name</label> 
-                {!! Form::text('subject_name', null, array('placeholder' => 'Subject Name','class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                {!! Form::text('subject_name', null, array('class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
-                <label>Registered From</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Registered From','class' => 'form-control', 'id'=>'txtRegisteredFrom', 'disabled')) !!}
+                <label>Viewded From</label> 
+                <div class="input-group date">
+                    <div class="input-group-addon">
+                        <i class="fa fa-calendar"></i>
+                    </div>
+                    {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredFrom', 'disabled')) !!}
+                </div>
             </div>
         </div>
 
         <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
-                <label>Registered To</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Registered To','class' => 'form-control', 'id'=>'txtRegisteredTo', 'disabled')) !!}
+                <label>Viewded To</label> 
+                <div class="input-group date">
+                    <div class="input-group-addon">
+                        <i class="fa fa-calendar"></i>
+                    </div>
+                    {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredTo', 'disabled')) !!}
+                </div>
             </div>
         </div>
 
         <div class="col-xs-3 col-sm-3 col-md-3">
             <div class="form-group">
-                <label>Total Number of Event</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Total Number of Event','class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
+                <label>Event</label> 
+                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-3 col-sm-3 col-md-3">
             <div class="form-group">
-                <label>Total Number of View</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Total Number of View','class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
+                <label>View</label> 
+                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-3 col-sm-3 col-md-3">
             <div class="form-group">
-                <label>Student Count</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Student count','class' => 'form-control', 'id'=>'txtTotalStudent', 'disabled')) !!}
+                <label>Student</label> 
+                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalStudent', 'disabled')) !!}
             </div>
         </div>
 
         <div class="col-xs-3 col-sm-3 col-md-3">
             <div class="form-group">
-                <label>Average events per view</label> 
-                {!! Form::text('subjectName', null, array('placeholder' => 'Average events per view','class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
+                <label>E/V</label> 
+                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
             </div>
         </div>
 
@@ -148,6 +157,11 @@
             </div>
         </div>
 
+        <div id="chart-container">FusionCharts will render here</div>
+
+        <canvas id="MeSeStatusCanvas"></canvas>
+    </div>
+    <div class="col-md-8">
         <div class="col-md-12">
             <!-- LINE CHART -->
             <div class="box box-info">
@@ -170,7 +184,6 @@
             <!-- /.box -->
         </div>
 
-        </br></br></br>
         <div class="col-md-12">
             <!-- LINE CHART -->
             <div class="box box-info">
@@ -192,9 +205,27 @@
             </div>
             <!-- /.box -->
         </div>
+
         <div class="col-md-12">
-                <div id="chart"></div>
-            
+            <!-- LINE CHART -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 id="graphHeader" class="box-title">Under Development</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                                </button>
+                    </div>
+                </div>
+                <div class="box-body chart-responsive">
+                    <div id="chart"></div>
+                </div>
+                <!-- Loading (remove the following to stop the loading)-->
+                <div class="overlay">
+                    <i class="fa fa-refresh fa-spin"></i>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
         </div>
     </div>
 {!! Form::close() !!}
@@ -294,7 +325,8 @@
                         y: data.durationInSecond[i].viewCount
                     });
                 }
-                console.log(JSON.stringify(jsonArr));
+                sideBar2();
+                //console.log(JSON.stringify(jsonArr));
                 d3Data = [
                             [{'x':1,'y':0},{'x':2,'y':5},{'x':3,'y':10},{'x':4,'y':0},{'x':5,'y':6},{'x':6,'y':11},{'x':7,'y':9},{'x':8,'y':4},{'x':9,'y':11},{'x':10,'y':2}]
                         ];
@@ -382,8 +414,9 @@
     //************************************************************
     
         d3Data = [
-                            [{'x':1,'y':0},{'x':2,'y':5},{'x':3,'y':10},{'x':4,'y':0},{'x':5,'y':6},{'x':6,'y':11},{'x':7,'y':9},{'x':8,'y':4},{'x':9,'y':11},{'x':10,'y':2}]
-                        ];
+                    [{'x':1,'y':0},{'x':2,'y':5},{'x':3,'y':10},{'x':4,'y':0},{'x':5,'y':6},{'x':6,'y':11},{'x':7,'y':9},{'x':8,'y':4},{'x':9,'y':11},{'x':10,'y':2}],
+                    [{'x':1,'y':30},{'x':2,'y':7},{'x':3,'y':3},{'x':4,'y':9},{'x':5,'y':-7},{'x':6,'y':4},{'x':7,'y':8},{'x':8,'y':3},{'x':9,'y':9},{'x':10,'y':3}]
+                ];
         var colors = [
             'steelblue',
             'green',
@@ -397,7 +430,7 @@
         //************************************************************
         var margin = {top: 20, right: 30, bottom: 30, left: 50},
             width = $("#chart").parent().width() - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
+            height = 250 - margin.top - margin.bottom;
             
         var x = d3.scale.linear()
             .domain([0, 12])
@@ -457,7 +490,7 @@
             .attr("transform", "rotate(-90)")
             .attr("y", (-margin.left) + 10)
             .attr("x", -height/2)
-            .text('Axis Label');	
+            .text('View Count');	
         
         svg.append("clipPath")
             .attr("id", "clip")
@@ -537,6 +570,103 @@
         points.selectAll('circle').attr("transform", function(d) { 
             return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
         );  
+    }
+
+
+    // Side Bar
+    function sideBar()
+    {
+        FusionCharts.ready(function () {
+            var topStores = new FusionCharts({
+                type: 'bar2d',
+                renderAt: 'chart-container',
+                width: '400',
+                height: '200',
+                dataFormat: 'json',
+                dataSource: {
+                    "chart": {
+                        "caption": "Top 5 Stores by Sales",
+                        "subCaption": "Last month",
+                        "yAxisName": "Sales (In USD)",
+                        "paletteColors": "#0075c2",
+                        "bgColor": "#ffffff",
+                        "showBorder": "0",
+                        "showCanvasBorder": "0",
+                        "usePlotGradientColor": "0",
+                        "plotBorderAlpha": "10",
+                        "placeValuesInside": "1",
+                        "valueFontColor": "#ffffff",
+                        "showAxisLines": "1",
+                        "axisLineAlpha": "25",
+                        "divLineAlpha": "10",
+                        "alignCaptionWithCanvas": "0",
+                        "showAlternateVGridColor": "0",
+                        "captionFontSize": "14",
+                        "subcaptionFontSize": "14",
+                        "subcaptionFontBold": "0",
+                        "toolTipColor": "#ffffff",
+                        "toolTipBorderThickness": "0",
+                        "toolTipBgColor": "#000000",
+                        "toolTipBgAlpha": "80",
+                        "toolTipBorderRadius": "2",
+                        "toolTipPadding": "5"
+                    },
+                    
+                    "data": [
+                        {
+                            "label": "Pause(%)",
+                            "value": "13"
+                        }, 
+                        {
+                            "label": "Rewind(%)",
+                            "value": "33"
+                        }, 
+                        {
+                            "label": "Forward(%)",
+                            "value": "53"
+                        }
+                    ]
+                }
+            })
+            .render();
+        });
+    }
+
+    // Side Bar 2
+    function sideBar2(){
+        var MeSeContext = document.getElementById("MeSeStatusCanvas").getContext("2d");
+
+        MeSeContext.height = 50;
+        var MeSeData = {
+            labels: [
+                "ME",
+                "SE",
+                "SE"
+            ],
+            datasets: [{
+                label: "Test",
+                data: [16, 5, 5],
+                backgroundColor: ["#669911", "#119966","#669911"],
+                hoverBackgroundColor: ["#66A2EB", "#FCCE56","#66A2EB"]
+            }]
+        };
+
+        var MeSeChart = new Chart(MeSeContext, {
+            type: 'horizontalBar',
+            data: MeSeData,
+            options: {
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            min: 0
+                        }
+                    }],
+                    yAxes: [{
+                        stacked: true
+                    }]
+                }
+            }
+        });
     }
 </script>
 @stop

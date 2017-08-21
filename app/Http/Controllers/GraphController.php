@@ -178,7 +178,7 @@ class GraphController extends Controller
                                         d. NAME AS subject_section_name,
                                         e. NAME AS subject_name,
                                         a.student_number,
-                                        a.registered_datetime AS log_registered_day,
+                                        DATE_FORMAT(a.registered_datetime, '%Y-%m-%d') AS log_registered_day,
                                         @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
                                         @previousEventActionNumber := b.event_action_number No_Need1
                                     FROM
@@ -192,7 +192,7 @@ class GraphController extends Controller
                                         a.school_contents_number = ?
                                     AND a.contents_download_datetime BETWEEN ?
                                     AND ?
-                                    AND f.deviation_rank IN (?)
+                                    AND f.deviation_rank = ?
                                     AND f.top_subject_number = ?
                                     AND a.history_upload_datetime IS NOT NULL
                                     AND a.duration IS NOT NULL
@@ -204,7 +204,7 @@ class GraphController extends Controller
                                         AND b.speed_number = 0
                                     )
                                     ORDER BY
-                                        a.registered_datetime;", [$contentNummber, $dateFrom, $dateTo, implode(",", $rank), $subject]);
+                                        a.registered_datetime;", [$contentNummber, $dateFrom, $dateTo, $rank, $subject]);
                 return $data;
 
             } catch (\Exception $e) {

@@ -118,6 +118,10 @@
     <script src="{{ asset('/js/custom.js') }}"></script>
     <!-- D3 -->
     <script src="{{ asset('/js/d3.v3.min.js') }}"></script>
+
+    <script src="https://static.fusioncharts.com/code/latest/fusioncharts.charts.js"></script>
+    <script src="https://static.fusioncharts.com/code/latest/fusioncharts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.3.0/Chart.min.js"></script>
 @show
 </html>
 
