@@ -1,4 +1,4 @@
-<footer class="main-footer">
+<footer class="main-footer no-print">
     <div class="pull-right hidden-xs">
         <b><a href="http://www.e-kjs.jp/">KJSによって開発</a></b>
     </div>

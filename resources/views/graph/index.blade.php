@@ -10,8 +10,8 @@
 @endif 
 
 {!! Form::open(array('id'=>'frmGraph')) !!}
-    <div class="col-xs-4 col-sm-4 col-md-4">
-        <div class="col-xs-4 col-sm-4 col-md-4">
+    <div class="col-xs-12 col-sm-4 col-md-4">
+        <div class="col-xs-12 col-sm-6 col-md-6">
             <div class="form-group">
                 <label>Subject</label>
                 {!! Form::select('subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <div class="col-xs-4 col-sm-4 col-md-4">
+        <div class="col-xs-12 col-sm-6 col-md-6">
             <div class="form-group">
                 <label>Content</label>
                 {!! Form::select('contentNumber', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
@@ -27,7 +27,7 @@
             </div>
         </div>
 
-        <div class="col-xs-4 col-sm-4 col-md-4">
+        <div class="col-xs-12 col-sm-12 col-md-12">
             <div class="form-group">
                 <label>Rank</label>
                 {!! Form::select('rank',  $ranks, null, ['class'=>'form-control select2', 'id'=>'ddlRank', 'multiple'=>'multiple', 'style'=>'width: 100%;']) !!}
@@ -62,13 +62,9 @@
         </div>
 
         <div class="col-xs-12 col-sm-12 col-md-12 text-center">
-            {{ Form::submit('Submit', array('class' => 'btn btn-primary')) }}
-        </div>
-
-        <div class="col-xs-12 col-sm-12 col-md-12">
-            <div class="top-buffer">
-            </div>
-        </div>
+        <div class="form-group">
+            {{ Form::submit('Submit', array('class' => 'btn btn-primary btn-sm')) }}
+        </div></div>
 
         <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
@@ -88,9 +84,6 @@
             <div class="form-group">
                 <label>Viewded From</label> 
                 <div class="input-group date">
-                    <div class="input-group-addon">
-                        <i class="fa fa-calendar"></i>
-                    </div>
                     {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredFrom', 'disabled')) !!}
                 </div>
             </div>
@@ -100,9 +93,6 @@
             <div class="form-group">
                 <label>Viewded To</label> 
                 <div class="input-group date">
-                    <div class="input-group-addon">
-                        <i class="fa fa-calendar"></i>
-                    </div>
                     {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredTo', 'disabled')) !!}
                 </div>
             </div>
@@ -137,15 +127,16 @@
         </div>
 
         <div class="col-xs-12 col-sm-12 col-md-12">
-            <div class="form-group">
-                <label>Events Ratio (%)</label> 
-                <canvas id="canEventsRatio"></canvas>
+            <div class="box-body">
+                <div class="chart">
+                    <canvas id="canEventsRatio"></canvas>
+                </div>
             </div>
         </div>
         
     </div>
-    <div class="col-md-8">
-        <div class="col-md-12">
+    <div class="col-xs-12 col-sm-8 col-md-8">
+        <div class="col-xs-12 col-sm-12 col-md-12">
             <!-- LINE CHART -->
             <div class="box box-info">
                 <div class="box-header with-border">
@@ -158,16 +149,12 @@
                 <div class="box-body chart-responsive">
                     <div class="chart graph-height" id="line-chart-density"></div>
                 </div>
-                <!-- Loading (remove the following to stop the loading)-->
-                <div class="overlay">
-                    <i class="fa fa-refresh fa-spin"></i>
-                </div>
                 <!-- /.box-body -->
             </div>
             <!-- /.box -->
         </div>
 
-        <div class="col-md-12">
+        <div class="col-xs-12 col-sm-12 col-md-12">
             <!-- LINE CHART -->
             <div class="box box-info">
                 <div class="box-header with-border">
@@ -180,36 +167,14 @@
                 <div class="box-body chart-responsive">
                     <div class="chart graph-height" id="line-chart-pause"></div>
                 </div>
-                <!-- Loading (remove the following to stop the loading)-->
-                <div class="overlay">
-                    <i class="fa fa-refresh fa-spin"></i>
-                </div>
                 <!-- /.box-body -->
             </div>
             <!-- /.box -->
         </div>
-
-        <div class="col-md-12">
-            <!-- LINE CHART -->
-            <div class="box box-info">
-                <div class="box-header with-border">
-                    <h3 id="graphHeader" class="box-title">Under Development</h3>
-                    <div class="box-tools pull-right">
-                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                                </button>
-                    </div>
-                </div>
-                <div class="box-body chart-responsive">
-                    <div id="chart"></div>
-                </div>
-                <!-- Loading (remove the following to stop the loading)-->
-                <div class="overlay">
-                    <i class="fa fa-refresh fa-spin"></i>
-                </div>
-                <!-- /.box-body -->
-            </div>
-            <!-- /.box -->
-        </div>
+    </div>
+    <!-- Loading (remove the following to stop the loading)-->
+    <div class="overlay">
+        <i class="fa fa-refresh fa-spin"></i>
     </div>
 {!! Form::close() !!}
 
@@ -315,15 +280,9 @@
                     });
                 }
                 drawEventsRatio(data.contentInfo.pauseRatio, data.contentInfo.forwardRatio, data.contentInfo.rewindRatio);
-                //console.log(JSON.stringify(jsonArr));
-                d3Data = [
-                            [{'x':1,'y':0},{'x':2,'y':5},{'x':3,'y':10},{'x':4,'y':0},{'x':5,'y':6},{'x':6,'y':11},{'x':7,'y':9},{'x':8,'y':4},{'x':9,'y':11},{'x':10,'y':2}]
-                        ];
-                d3Load(d3Data);
-                
             },
             error: function (data) {
-                swal("Sorry!", JSON.stringify(data));
+                swal("Sorry!", "Some thing went wrong");
             }
         });
 
@@ -391,173 +350,7 @@
         $("#txtToDateInput").datepicker('setDate', today.toString('yyyy-MM-dd'));
         clearData();
         //d3Load([]);
-    };
-
-    // D3
-    //function d3Load(d3Data){
-
-    //************************************************************
-    // Data notice the structure
-    //************************************************************
-    
-        d3Data = [
-                    [{'x':1,'y':0},{'x':2,'y':5},{'x':3,'y':10},{'x':4,'y':0},{'x':5,'y':6},{'x':6,'y':11},{'x':7,'y':9},{'x':8,'y':4},{'x':9,'y':11},{'x':10,'y':2}],
-                    [{'x':1,'y':30},{'x':2,'y':7},{'x':3,'y':3},{'x':4,'y':9},{'x':5,'y':-7},{'x':6,'y':4},{'x':7,'y':8},{'x':8,'y':3},{'x':9,'y':9},{'x':10,'y':3}]
-                ];
-        var colors = [
-            'steelblue',
-            'green',
-            'red',
-            'purple'
-        ]
-        
-        
-        //************************************************************
-        // Create Margins and Axis and hook our zoom function
-        //************************************************************
-        var margin = {top: 20, right: 30, bottom: 30, left: 50},
-            width = $("#chart").parent().width() - margin.left - margin.right,
-            height = 250 - margin.top - margin.bottom;
-            
-        var x = d3.scale.linear()
-            .domain([0, 12])
-            .range([0, width]);
-        
-        var y = d3.scale.linear()
-            .domain([-1, 16])
-            .range([height, 0]);
-            
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .tickSize(-height)
-            .tickPadding(10)	
-            .tickSubdivide(true)	
-            .orient("bottom");	
-            
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .tickPadding(10)
-            .tickSize(-width)
-            .tickSubdivide(true)	
-            .orient("left");
-            
-        var zoom = d3.behavior.zoom()
-            .x(x)
-            .y(y)
-            .scaleExtent([1, 10])
-            .on("zoom", zoomed);	
-            
-            
-        
-            
-            
-        //************************************************************
-        // Generate our SVG object
-        //************************************************************	
-        var svg = d3.select("#chart").append("svg")
-            .call(zoom)
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-        
-        svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(xAxis);
-        
-        svg.append("g")
-            .attr("class", "y axis")
-            .call(yAxis);
-        
-        svg.append("g")
-            .attr("class", "y axis")
-            .append("text")
-            .attr("class", "axis-label")
-            .attr("transform", "rotate(-90)")
-            .attr("y", (-margin.left) + 10)
-            .attr("x", -height/2)
-            .text('View Count');	
-        
-        svg.append("clipPath")
-            .attr("id", "clip")
-            .append("rect")
-            .attr("width", width)
-            .attr("height", height);
-            
-            
-            
-            
-            
-        //************************************************************
-        // Create D3 line object and draw data on our SVG object
-        //************************************************************
-        var line = d3.svg.line()
-            .interpolate("linear")	
-            .x(function(d) { return x(d.x); })
-            .y(function(d) { return y(d.y); });		
-            
-        svg.selectAll('.line')
-            .data(d3Data)
-            .enter()
-            .append("path")
-            .attr("class", "line")
-            .attr("clip-path", "url(#clip)")
-            .attr('stroke', function(d,i){ 			
-                return colors[i%colors.length];
-            })
-            .attr("d", line);		
-            
-            
-            
-            
-        //************************************************************
-        // Draw points on SVG object based on the data given
-        //************************************************************
-        var points = svg.selectAll('.dots')
-            .data(d3Data)
-            .enter()
-            .append("g")
-            .attr("class", "dots")
-            .attr("clip-path", "url(#clip)");	
-        
-        points.selectAll('.dot')
-            .data(function(d, index){ 		
-                var a = [];
-                d.forEach(function(point,i){
-                    a.push({'index': index, 'point': point});
-                });		
-                return a;
-            })
-            .enter()
-            .append('circle')
-            .attr('class','dot')
-            .attr("r", 2.5)
-            .attr('fill', function(d,i){ 	
-                return colors[d.index%colors.length];
-            })	
-            .attr("transform", function(d) { 
-                return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
-            );
-    //}
-        
-    
-        
-        
-        
-        
-    //************************************************************
-    // Zoom specific updates
-    //************************************************************
-    function zoomed() {
-        svg.select(".x.axis").call(xAxis);
-        svg.select(".y.axis").call(yAxis);   
-        svg.selectAll('path.line').attr('d', line);  
-    
-        points.selectAll('circle').attr("transform", function(d) { 
-            return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
-        );  
-    }
+    };  
 
     // Drawing Event's Ratio
     function drawEventsRatio(pause, froward, rewind){
@@ -566,14 +359,14 @@
         MeSeContext.height = 20;
         var MeSeData = {
             labels: [
-                "Pause",
-                "Forward",
-                "Rewind"
+                "Pause (%)",
+                "Forward (%)",
+                "Rewind (%)"
             ],
             datasets: [{
-                data: [pause, froward, rewind],
-                backgroundColor: ["#FF0000", "#0000CD","#669911"],
-                hoverBackgroundColor: ["#66A2EB", "#FCCE56", "#008000"]
+                data: [pause, rewind, froward],
+                backgroundColor: ["#FF0000", "#669911", "#0000CD"],
+                hoverBackgroundColor: ["#66A2EB", "#008000", "#FCCE56"]
             }]
         };
 
