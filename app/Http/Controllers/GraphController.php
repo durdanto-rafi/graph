@@ -134,20 +134,27 @@ class GraphController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function getGraphData(Request $request)
-    {
+    public function getGraphData(Request $request){
     	if($request->ajax()){
-            $durationInSecond = $this->processData($request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
+            $logs = array();
+            
+            // Multiple Rank
+            for($i=0; $i<count($request->rank); $i++){
+                $newLogs = $this->getLogData($request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
+                $logs = array_merge($logs, $newLogs);
+            }
+            
+            //$logs = $this->getLogData($request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
+            $durationInSecond = $this->processData($logs);
     		return response()->json(['durationInSecond'=> $durationInSecond, 'contentInfo'=> $this->contentInfo]);
     	}
     }
 
-    private function processData($contentNummber, $dateFrom, $dateTo, $rank, $subject)
-    {
+    private function getLogData($contentNummber, $dateFrom, $dateTo, $rank, $subject){
         // Database query
         $logs = DB::transaction(function() use ($contentNummber, $dateFrom, $dateTo, $rank, $subject)
         {
-            $ranks = implode(",", (array)$rank);
+            //$ranks = implode(",", (array)$rank);
             try 
             {
                 //DB::enableQueryLog();
@@ -194,7 +201,7 @@ class GraphController extends Controller
                                         a.school_contents_number = ?
                                     AND a.contents_download_datetime BETWEEN ?
                                     AND ?
-                                    AND f.deviation_rank IN (?)
+                                    AND f.deviation_rank = ?
                                     AND f.top_subject_number = ?
                                     AND a.history_upload_datetime IS NOT NULL
                                     AND a.duration IS NOT NULL
@@ -206,7 +213,7 @@ class GraphController extends Controller
                                         AND b.speed_number = 0
                                     )
                                     ORDER BY
-                                        a.registered_datetime;", [$contentNummber, $dateFrom, $dateTo, $ranks, $subject]);
+                                        a.registered_datetime;", [$contentNummber, $dateFrom, $dateTo, $rank, $subject]);
 
                 //dd(DB::getQueryLog());
                 return $data;
@@ -217,7 +224,11 @@ class GraphController extends Controller
             }
         });
 
-        //dd($logs);
+        return $logs;
+    }
+
+    private function processData($logs)
+    {
         $durationInSecond = array();
         if($logs != null)
         {
@@ -243,7 +254,6 @@ class GraphController extends Controller
                 {
                     $durationInSecond[$i] = array("second" => $i, "viewCount" => 0, "pauseCount" => 0, "forwardCount" => 0, "rewindCount" => 0);
                 }
-                //dd($durationInSecond);
 
                 $events = array_values($logByDuration);
 
@@ -348,8 +358,6 @@ class GraphController extends Controller
             $durations[$log->duration][] = $log;
         }
 
-        //dd(json_encode($durations));
-
         // Getting Max used duration
         $maxValue = 0;
         $maxKey = 0;
@@ -388,8 +396,6 @@ class GraphController extends Controller
                 }
             }
         }
-
-        //dd(json_encode($durations));
       
         return $durations;
     }
@@ -397,11 +403,8 @@ class GraphController extends Controller
     private function fixDuration($realDuration, $log)
     {
         $calculateData = ($realDuration / $log->duration);
-
         $log->duration = floor($calculateData * $log->duration);
-        //$log->progress_time = floor($calculateData * $log->progress_time);
         $log->position = floor($calculateData * $log->position);
-
         return $log;
     }
 }

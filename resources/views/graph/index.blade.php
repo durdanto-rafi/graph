@@ -252,7 +252,7 @@
             success: function (data) {
                 $('.overlay').hide();
 
-                //console.log(data);
+                console.log(data);
                 if(data.durationInSecond.length == 0)
                 {
                     swal("Sorry!", "No data");
@@ -281,8 +281,9 @@
                 }
                 drawEventsRatio(data.contentInfo.pauseRatio, data.contentInfo.forwardRatio, data.contentInfo.rewindRatio);
             },
-            error: function (data) {
-                swal("Sorry!", "Some thing went wrong");
+            error: function(xhr, status, error) {
+                var err = eval("(" + xhr.responseText + ")");
+                swal("Sorry!", err.Message);
             }
         });
 
