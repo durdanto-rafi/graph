@@ -11,7 +11,7 @@
 |
 */
 
-
+Route::get('/', ['as'=>'/','uses'=>'GraphController@index']);
 Route::resource('graph', 'GraphController');
 Route::post('graphData', ['as'=>'graphData','uses'=>'GraphController@getGraphData']);
 Route::post('subjectContents', ['as'=>'subjectContents','uses'=>'GraphController@getSubjectContents']);

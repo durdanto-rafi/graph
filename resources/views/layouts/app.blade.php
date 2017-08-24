@@ -19,6 +19,8 @@
     <link href="{{ asset('css/datepicker3.css') }}" rel="stylesheet">
     <!-- Sweet Alert -->
     <link href="{{ asset('css/sweetalert.css') }}" rel="stylesheet">
+     <!-- iCheck for checkboxes and radio inputs -->
+    <link rel="stylesheet" href="{{ asset('plugins/iCheck/all.css') }}">
     <!-- Multiselect -->
     <link href="{{ asset('css/multiselect.min.css') }}" rel="stylesheet">
     <!-- Select2 -->
@@ -94,11 +96,13 @@
     <script src="{{ asset('/js/bootstrap.min.js') }}"></script>
     <!-- SlimScroll -->
     <script src="{{ asset('/js/jquery.slimscroll.min.js') }}"></script>
-    <!-- FastClick -->
-    <script src="{{ asset('/js/fastclick.js') }}"></script>
     <!-- Morris.js charts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
     <script src="{{ asset('/js/morris.min.js') }}"></script>
+    <!-- iCheck 1.0.1 -->
+    <script src="{{ asset('/plugins/iCheck/icheck.min.js') }}"></script>
+    <!-- FastClick -->
+    <script src="{{ asset('/plugins/fastclick/fastclick.js') }}"></script>
     <!-- AdminLTE App -->
     <script src="{{ asset('/js/app.min.js') }}"></script>
     <!-- AdminLTE for demo purposes -->
@@ -118,9 +122,7 @@
     <script src="{{ asset('/js/custom.js') }}"></script>
     <!-- D3 -->
     <script src="{{ asset('/js/d3.v3.min.js') }}"></script>
-
-    <script src="https://static.fusioncharts.com/code/latest/fusioncharts.charts.js"></script>
-    <script src="https://static.fusioncharts.com/code/latest/fusioncharts.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.3.0/Chart.min.js"></script>
 @show
 </html>

@@ -23,7 +23,7 @@ class GraphController extends Controller
         if($user != null)
         {
             $subjects = MstTopSubject::pluck("name","top_subject_number")->all();
-            $ranks = MstDeviationValueRank::pluck("name","rank_number")->all();
+            $ranks = MstDeviationValueRank::orderBy('rank_number', 'DESC')->get();
             return view('graph.index')->with('subjects', $subjects)->with('ranks', $ranks);
         }
         else
