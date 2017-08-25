@@ -11,7 +11,7 @@
 
 {!! Form::open(array('id'=>'frmGraph')) !!}
     <div class="col-xs-12 col-sm-4 col-md-4">
-        <div class="col-xs-12 col-sm-6 col-md-6">
+        <div class="col-xs-12 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Subject</label>
                 {!! Form::select('subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
@@ -19,10 +19,18 @@
             </div>
         </div>
 
-        <div class="col-xs-12 col-sm-6 col-md-6">
+        <div class="col-xs-12 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Content</label>
                 {!! Form::select('contentNumber', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
+                <!-- /.input group -->
+            </div>
+        </div>
+
+        <div class="col-xs-12 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Test</label>
+                {!! Form::select('subject', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -158,7 +166,7 @@
             <!-- LINE CHART -->
             <div class="box box-info">
                 <div class="box-header with-border">
-                    <h3 id="graphHeader" class="box-title">Pause</h3>
+                    <h3 id="graphHeader" class="box-title">Events</h3>
                     <div class="box-tools pull-right">
                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                                 </button>
@@ -187,7 +195,6 @@
 <script type="text/javascript">
     $(".select2").select2();
     $('.overlay').hide();
-    var d3Data;
 
     //Date picker
     $('.datepicker').datepicker({
@@ -224,7 +231,7 @@
         // Validation
         var error = new Array();
         var dataArray = $("#frmGraph").serializeArray();
-        console.log(dataArray);
+        //console.log(dataArray);
         $(dataArray).each(function(i, field){
             if(field.value.length == 0){
                 error.push(field.name);
@@ -250,19 +257,17 @@
 
         $('.overlay').show();
 
+        var test = $("#ddlTest").val();
         var subject = $("#ddlSubject").val();
         var contentNumber = $("#ddlContentNumber").val();
         var dateFrom = $("#txtFromDateInput").val();
         var dateTo = $("#txtToDateInput").val();
         var token = $("input[name='_token']").val();
 
-       
-
-
         $.ajax({
             url: "{{ route('graphData') }}",
             method: 'POST',
-            data: {'subject':subject, 'contentNumber':contentNumber, 'rank':rank, 'dateFrom':dateFrom, 'dateTo':dateTo, _token:token},
+            data: {'test':test, 'subject':subject, 'contentNumber':contentNumber, 'rank':rank, 'dateFrom':dateFrom, 'dateTo':dateTo, _token:token},
             success: function (data) {
                 $('.overlay').hide();
 
@@ -405,41 +410,41 @@
             }
         });
     }
-        //iCheck for checkbox and radio inputs
-        $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+    //iCheck for checkbox and radio inputs
+    $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
         checkboxClass: 'icheckbox_minimal-blue',
         radioClass: 'iradio_minimal-blue'
-        });
-        //Red color scheme for iCheck
-        $('input[type="checkbox"].minimal-red, input[type="radio"].minimal-red').iCheck({
+    });
+    //Red color scheme for iCheck
+    $('input[type="checkbox"].minimal-red, input[type="radio"].minimal-red').iCheck({
         checkboxClass: 'icheckbox_minimal-red',
         radioClass: 'iradio_minimal-red'
-        });
-        //Flat red color scheme for iCheck
-        $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
+    });
+    //Flat red color scheme for iCheck
+    $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
         checkboxClass: 'icheckbox_flat-green',
         radioClass: 'iradio_flat-green'
-        });
+    });
 
-        $('#chkAll').click(function(event) {
-            if(this.checked) {
-                // Iterate each checkbox
-                $(':checkbox').each(function() {
-                    this.checked = true;
-                });
-            }
-            else {
-                $(':checkbox').each(function() {
-                    this.checked = false;
-                });
-            }
-        });
+    $('#chkAll').click(function(event) {
+        if(this.checked) {
+            // Iterate each checkbox
+            $(':checkbox').each(function() {
+                this.checked = true;
+            });
+        }
+        else {
+            $(':checkbox').each(function() {
+                this.checked = false;
+            });
+        }
+    });
 
-        $("[name='rank[]']").click(function(event) {
-            if($('#chkGroup').is(':checked'))
-            {
-                $('#chkAll').attr('checked', false);
-            }
-        });
+    $("[name='rank[]']").click(function(event) {
+        if($('#chkGroup').is(':checked'))
+        {
+            $('#chkAll').attr('checked', false);
+        }
+    });
 </script>
 @stop

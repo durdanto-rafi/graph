@@ -5,6 +5,7 @@ use DB;
 use Illuminate\Http\Request;
 use App\Models\MstTopSubject;
 use App\Models\MstDeviationValueRank;
+use App\Models\TblTrialTestName;
 
 class GraphController extends Controller
 {
@@ -22,9 +23,10 @@ class GraphController extends Controller
         $user = $request->session()->get('user');
         if($user != null)
         {
+            $tests = TblTrialTestName::pluck("name","trial_test_number")->all();
             $subjects = MstTopSubject::pluck("name","top_subject_number")->all();
             $ranks = MstDeviationValueRank::orderBy('rank_number', 'DESC')->get();
-            return view('graph.index')->with('subjects', $subjects)->with('ranks', $ranks);
+            return view('graph.index')->with('subjects', $subjects)->with('ranks', $ranks)->with('tests', $tests);
         }
         else
         {
@@ -140,7 +142,7 @@ class GraphController extends Controller
             
             // Multiple Rank
             for($i=0; $i<count($request->rank); $i++){
-                $newLogs = $this->getLogData($request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
+                $newLogs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
                 $logs = array_merge($logs, $newLogs);
             }
             
@@ -150,9 +152,9 @@ class GraphController extends Controller
     	}
     }
 
-    private function getLogData($contentNummber, $dateFrom, $dateTo, $rank, $subject){
+    private function getLogData($test, $contentNummber, $dateFrom, $dateTo, $rank, $subject){
         // Database query
-        $logs = DB::transaction(function() use ($contentNummber, $dateFrom, $dateTo, $rank, $subject)
+        $logs = DB::transaction(function() use ($test, $contentNummber, $dateFrom, $dateTo, $rank, $subject)
         {
             //$ranks = implode(",", (array)$rank);
             try 
@@ -203,6 +205,7 @@ class GraphController extends Controller
                                     AND ?
                                     AND f.deviation_rank = ?
                                     AND f.top_subject_number = ?
+                                    AND f.trial_test_number = ?
                                     AND a.history_upload_datetime IS NOT NULL
                                     AND a.duration IS NOT NULL
                                     AND a.player3_code IS NULL
@@ -213,7 +216,7 @@ class GraphController extends Controller
                                         AND b.speed_number = 0
                                     )
                                     ORDER BY
-                                        a.registered_datetime;", [$contentNummber, $dateFrom, $dateTo, $rank, $subject]);
+                                        a.registered_datetime;", [$contentNummber, $dateFrom, $dateTo, $rank, $subject, $test]);
 
                 //dd(DB::getQueryLog());
                 return $data;
@@ -243,6 +246,7 @@ class GraphController extends Controller
             }
             $this->contentInfo['totalViewCount'] = count($histories);
             $this->contentInfo['totalStudentCount'] = count($students);
+            //dd(array_keys($students));
 
 
             $logByDuration = $this->getDuration($logs);
