@@ -30,7 +30,7 @@
         <div class="col-xs-12 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Test</label>
-                {!! Form::select('subject', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
+                {!! Form::select('test', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -41,7 +41,7 @@
                 <label>
                     <input type="checkbox" id="chkAll" /> All<br/>
                     @foreach ($ranks as $rank)
-                        <input tabindex="1" type="checkbox" name="rank[]" id="chkGroup" value="{{$rank->rank_number}}"> {{$rank->name}} <br>
+                        <input tabindex="1" type="checkbox" name="rank" id="chkGroup" value="{{$rank->rank_number}}"> {{$rank->name}} <br>
                     @endforeach
                 </label>
             </div>
@@ -148,37 +148,48 @@
             <!-- LINE CHART -->
             <div class="box box-info">
                 <div class="box-header with-border">
-                    <h3 id="graphHeader" class="box-title">View Density</h3>
+                    <h3 class="box-title">View Density</h3>
+
                     <div class="box-tools pull-right">
                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                                </button>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
                     </div>
                 </div>
-                <div class="box-body chart-responsive">
-                    <div class="chart graph-height" id="line-chart-density"></div>
+                <div class="box-body">
+                    <div class="chart">
+                        <canvas id="canViewDensity" ></canvas>
+                        <button id="btnResetZoomViewDensity" class="btn btn-primary btn-sm" onclick="return false;" > Reset zoom </button>
+                    </div>
                 </div>
                 <!-- /.box-body -->
             </div>
-            <!-- /.box -->
+          <!-- /.box -->
         </div>
 
         <div class="col-xs-12 col-sm-12 col-md-12">
             <!-- LINE CHART -->
             <div class="box box-info">
                 <div class="box-header with-border">
-                    <h3 id="graphHeader" class="box-title">Events</h3>
+                    <h3 class="box-title">Events</h3>
+
                     <div class="box-tools pull-right">
                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                                </button>
+                        </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
                     </div>
                 </div>
-                <div class="box-body chart-responsive">
-                    <div class="chart graph-height" id="line-chart-pause"></div>
+                <div class="box-body">
+                    <div class="chart">
+                        <canvas id="canEvents"></canvas>
+                        <button id="btnResetZoomEvents" class="btn btn-primary btn-sm" onclick="return false;" > Reset zoom </button>
+                    </div>
                 </div>
                 <!-- /.box-body -->
             </div>
-            <!-- /.box -->
+          <!-- /.box -->
         </div>
+
     </div>
     <!-- Loading (remove the following to stop the loading)-->
     <div class="overlay">
@@ -240,7 +251,7 @@
 
         // Getting checked rank data
         var rank = new Array();
-        $("[name='rank[]']").each(function (index, data) {
+        $("[name='rank']").each(function (index, data) {
             if (data.checked) {
                 rank.push(data.value);
             }
@@ -288,8 +299,29 @@
                 document.getElementById('txtEventPerView').value = data.contentInfo.eventPerView;
                 document.getElementById('txtTotalStudent').value = data.contentInfo.totalStudentCount;
 
-                densityLine.setData(data.durationInSecond);
-                pauseLine.setData(data.durationInSecond);
+                // Updating View Density data to chart
+                viewDensityData.labels = data.contentInfo.duration;
+                viewDensityData.datasets.forEach(function (dataset) {
+                    if(dataset.label == 'View Density'){
+                        dataset.data = data.contentInfo.indexedViewCount;
+                    }
+                });
+                window.viewDensityChart.update();
+
+                // Updating Events data to chart
+                eventsData.labels = data.contentInfo.duration;
+                eventsData.datasets.forEach(function (dataset) {
+                    if(dataset.label == 'Pause'){
+                        dataset.data = data.contentInfo.indexedPauseCount;
+                    }
+                    if(dataset.label == 'Rewind'){
+                        dataset.data = data.contentInfo.indexedRewindCount;
+                    }
+                    if(dataset.label == 'Forward'){
+                        dataset.data = data.contentInfo.indexedForwardCount;
+                    }
+                });
+                window.eventsChart.update();
 
                 jsonArr = [];
                 for (var i = 0; i < data.durationInSecond.length; i++) {
@@ -304,37 +336,6 @@
                 var err = eval("(" + xhr.responseText + ")");
                 swal("Sorry!", err.Message);
             }
-        });
-
-        // Density graph
-        var densityLine = new Morris.Line({
-            element: 'line-chart-density',
-            resize: true,
-            data: [0,0],
-            xkey: 'second',
-            ykeys: ['viewCount'],
-            labels: ['View count'],
-            lineColors: ['#3c8dbc'],
-            hideHover: 'auto',
-            parseTime: false,
-            pointSize: 0,
-            xLabelFormat: function(x) { return fmtMSS(x.label) }
-        });
-
-        // Pause graph
-        var pauseLine = new Morris.Line({
-            element: 'line-chart-pause',
-            resize: true,
-            data: [0,0],
-            xkey: 'second',
-            ykeys: ['pauseCount', 'forwardCount', 'rewindCount'],
-            labels: ['Pause count', 'Forward count', 'Rewind count'],
-            lineColors: ['#FF0000', '#0000CD', '#008000'],
-            hideHover: 'auto',
-            parseTime: false,
-            pointSize: 0,
-            xLabelFormat: function(x) { return fmtMSS(x.label) },
-            lineWidth : 1
         });
     });
 
@@ -369,6 +370,45 @@
         var today = new Date();
         $("#txtToDateInput").datepicker('setDate', today.toString('yyyy-MM-dd'));
         clearData();
+
+
+        //View Density chart initialization
+        var ctxViewDensity = document.getElementById("canViewDensity").getContext("2d");
+        window.viewDensityChart = new Chart(ctxViewDensity, {
+            type: 'line',
+            data: viewDensityData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                pan: {
+                    enabled: true,
+                    mode: 'y',
+                },
+                zoom: {
+                    enabled: true,                      
+                    mode: 'y',
+                }
+            }
+        });
+
+        //Events chart initialization
+        var ctxEvents = document.getElementById("canEvents").getContext("2d");
+        window.eventsChart = new Chart(ctxEvents, {
+            type: 'line',
+            data: eventsData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                pan: {
+                    enabled: true,
+                    mode: 'y',
+                },
+                zoom: {
+                    enabled: true,                      
+                    mode: 'y',
+                }
+            }
+        });
     };  
 
     // Drawing Event's Ratio
@@ -381,7 +421,6 @@
                 "Pause (%)",
                 "Rewind (%)",
                 "Forward (%)"
-                
             ],
             datasets: [{
                 data: [pause, rewind, froward],
@@ -440,11 +479,79 @@
         }
     });
 
-    $("[name='rank[]']").click(function(event) {
+    $("[name='rank']").click(function(event) {
         if($('#chkGroup').is(':checked'))
         {
             $('#chkAll').attr('checked', false);
         }
     });
+
+
+    // View Density 
+    var viewDensityData = {
+        labels: [],
+        datasets: [{
+            type: 'line',
+            label: 'View Density',
+            borderColor: window.chartColors.blue,
+            borderWidth: 2,
+            fill: false,
+            data: [],
+            pointRadius: 0,
+            pointHoverBackgroundColor: 'red'
+        }, {
+            type: 'bar',
+            label: 'Dataset 2',
+            backgroundColor: window.chartColors.red,
+            data: [ ],
+            borderColor: 'white',
+            borderWidth: 2
+        }]
+
+    };
+
+    $('#btnResetZoomViewDensity').click(function () {
+        window.viewDensityChart.resetZoom();
+    });
+
+
+    // Events 
+    var eventsData = {
+        labels: [],
+        datasets: [{
+            type: 'line',
+            label: 'Pause',
+            borderColor: "#FF0000",
+            borderWidth: 2,
+            fill: false,
+            data: [],
+            pointRadius: 0,
+            pointHoverBackgroundColor: 'red'
+        }, {
+            type: 'line',
+            label: 'Rewind',
+            borderColor: "#669911",
+            borderWidth: 2,
+            fill: false,
+            data: [],
+            pointRadius: 0,
+            pointHoverBackgroundColor: 'red'
+        }, {
+            type: 'line',
+            label: 'Forward',
+            borderColor: '#0000CD',
+            borderWidth: 2,
+            fill: false,
+            data: [],
+            pointRadius: 0,
+            pointHoverBackgroundColor: 'red'
+        }]
+
+    };
+
+    $('#btnResetZoomEvents').click(function () {
+        window.eventsChart.resetZoom();
+    });
+
 </script>
 @stop

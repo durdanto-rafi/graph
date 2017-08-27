@@ -9,7 +9,7 @@ use App\Models\TblTrialTestName;
 
 class GraphController extends Controller
 {
-    public $contentInfo = array("eventCount" => 0, "totalPauseCount" => 0, "totalForwardCount" => 0, "totalRewindCount" => 0);
+    public $contentInfo = array("eventCount" => 0, "eventPerView" => 0, "totalPauseCount" => 0, "totalForwardCount" => 0, "totalRewindCount" => 0, "totalViewCount" => 0);
 
     /**
      * Display a listing of the resource.
@@ -253,10 +253,14 @@ class GraphController extends Controller
             if(count($logByDuration) == 1)
             {
                 // Creating array according to content duration
+                $this->contentInfo['duration'] = array();
+
+
                 $duration = array_keys($logByDuration)[0];
                 for($i = 0; $i <= $duration; $i++)
                 {
                     $durationInSecond[$i] = array("second" => $i, "viewCount" => 0, "pauseCount" => 0, "forwardCount" => 0, "rewindCount" => 0);
+                    array_push($this->contentInfo['duration'] , $i);
                 }
 
                 $events = array_values($logByDuration);
@@ -333,17 +337,37 @@ class GraphController extends Controller
                     {
                         for($j = $previousEvent->position; $j < $currentEvent->position; $j++)
                         {
-                            $valueArray = $durationInSecond[$j];
-                            $valueArray['viewCount'] += 1;
-                            $durationInSecond[$j] = $valueArray;
+                            $durationInSecond[$j]['viewCount'] += 1;
                         }
                     }
                     $previousEvent = $currentEvent;
                 }
-                $this->contentInfo['eventPerView'] = floor($this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount']);
-                $this->contentInfo['pauseRatio'] = number_format(($this->contentInfo['totalPauseCount'] / $this->contentInfo['eventCount'] * 100),  1, '.', '');
-                $this->contentInfo['forwardRatio'] = number_format($this->contentInfo['totalForwardCount'] / $this->contentInfo['eventCount'] * 100,  1, '.', '');
-                $this->contentInfo['rewindRatio'] = number_format($this->contentInfo['totalRewindCount'] / $this->contentInfo['eventCount'] * 100,  1, '.', '');
+
+                
+
+                if($this->contentInfo['eventCount'] > 0){
+                    $this->contentInfo['eventPerView'] = floor($this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount']);
+                    $this->contentInfo['pauseRatio'] = number_format(($this->contentInfo['totalPauseCount'] / $this->contentInfo['eventCount'] * 100),  1, '.', '');
+                    $this->contentInfo['forwardRatio'] = number_format($this->contentInfo['totalForwardCount'] / $this->contentInfo['eventCount'] * 100,  1, '.', '');
+                    $this->contentInfo['rewindRatio'] = number_format($this->contentInfo['totalRewindCount'] / $this->contentInfo['eventCount'] * 100,  1, '.', '');
+                }
+
+                // Getting viewcount for new index array
+                $this->contentInfo['indexedViewCount'] = array();
+                $this->contentInfo['indexedPauseCount'] = array();
+                $this->contentInfo['indexedForwardCount'] = array();
+                $this->contentInfo['indexedRewindCount'] = array();
+
+                foreach($durationInSecond as $key => $value){
+                    array_push($this->contentInfo['indexedViewCount'] , $durationInSecond[$key]['viewCount']);
+                    array_push($this->contentInfo['indexedPauseCount'] , $durationInSecond[$key]['pauseCount']);
+                    array_push($this->contentInfo['indexedForwardCount'] , $durationInSecond[$key]['forwardCount']);
+                    array_push($this->contentInfo['indexedRewindCount'] , $durationInSecond[$key]['rewindCount']);
+                }
+
+                //dd( $this->contentInfo['indexedViewCount']);
+               
+                
                 
                 //dd(json_encode($durationInSecond));
                 //dd($this->contentInfo);

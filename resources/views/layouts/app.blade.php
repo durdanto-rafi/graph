@@ -15,8 +15,6 @@
     <link href="{{ asset('css/ionicons.min.css') }}" rel="stylesheet">
     <!-- Date Range Picker -->
     <link href="{{ asset('plugins/daterangepicker/daterangepicker.css') }}" rel="stylesheet">
-    <!-- Datepicker -->
-    <link href="{{ asset('css/datepicker3.css') }}" rel="stylesheet">
     <!-- Sweet Alert -->
     <link href="{{ asset('css/sweetalert.css') }}" rel="stylesheet">
      <!-- iCheck for checkboxes and radio inputs -->
@@ -120,10 +118,12 @@
     <script src="{{ asset('/js/sweetalert-dev.js') }}"></script>
     <!-- Custom -->
     <script src="{{ asset('/js/custom.js') }}"></script>
-    <!-- D3 -->
-    <script src="{{ asset('/js/d3.v3.min.js') }}"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.3.0/Chart.min.js"></script>
+    <!-- Chart bundle -->
+    <script src="{{ asset('/plugins/chartjs-v2/Chart.bundle.js') }}"></script>
+    <!-- Chart bundle -->
+    <script src="{{ asset('/plugins/chartjs-v2/Chart.Zoom.min.js') }}"></script>
+    <!-- Chart bundle -->
+    <script src="{{ asset('/plugins/chartjs-v2/utils.js') }}"></script>
 @show
 </html>
 
