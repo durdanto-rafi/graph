@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\MstTopSubject;
 use App\Models\MstDeviationValueRank;
 use App\Models\TblTrialTestName;
+use App\Models\TblSchoolContentsBlock;
 
 class GraphController extends Controller
 {
@@ -147,7 +148,12 @@ class GraphController extends Controller
             }
             
             //$logs = $this->getLogData($request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
-            $durationInSecond = $this->processData($logs);
+            $blocks = $this->getBlockMarks($request->contentNumber);
+            $durationInSecond = $this->processData($logs, $blocks);
+           
+            //$frames = gmdate("i:s",  floor(($blocks->final_frame/1000)));
+            dd( $this->contentInfo);
+
     		return response()->json(['durationInSecond'=> $durationInSecond, 'contentInfo'=> $this->contentInfo]);
     	}
     }
@@ -230,7 +236,7 @@ class GraphController extends Controller
         return $logs;
     }
 
-    private function processData($logs)
+    private function processData($logs, $blocks)
     {
         $durationInSecond = array();
         if($logs != null)
@@ -255,12 +261,17 @@ class GraphController extends Controller
                 // Creating array according to content duration
                 $this->contentInfo['duration'] = array();
 
-
+                $this->contentInfo['blocks'] = array();
                 $duration = array_keys($logByDuration)[0];
                 for($i = 0; $i <= $duration; $i++)
                 {
                     $durationInSecond[$i] = array("second" => $i, "viewCount" => 0, "pauseCount" => 0, "forwardCount" => 0, "rewindCount" => 0);
-                    array_push($this->contentInfo['duration'] , $i);
+                    array_push($this->contentInfo['duration'] ,  $i);
+                    foreach($blocks as $block){
+                        if($i === floor($block->final_number/1000)){
+                            array_push($this->contentInfo['blocks'] , $i);
+                        }
+                    }
                 }
 
                 $events = array_values($logByDuration);
@@ -434,5 +445,9 @@ class GraphController extends Controller
         $log->duration = floor($calculateData * $log->duration);
         $log->position = floor($calculateData * $log->position);
         return $log;
+    }
+
+    private function getBlockMarks($contentNumber){
+        return TblSchoolContentsBlock::where('school_contents_number', $contentNumber)->get();
     }
 }

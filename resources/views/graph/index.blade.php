@@ -282,9 +282,7 @@
             success: function (data) {
                 $('.overlay').hide();
 
-                //console.log(data);
-                if(data.durationInSecond.length == 0)
-                {
+                if(data.durationInSecond.length == 0){
                     swal("Sorry!", "No data");
                     return;
                 }
@@ -299,6 +297,7 @@
                 document.getElementById('txtEventPerView').value = data.contentInfo.eventPerView;
                 document.getElementById('txtTotalStudent').value = data.contentInfo.totalStudentCount;
 
+                
                 // Updating View Density data to chart
                 viewDensityData.labels = data.contentInfo.duration;
                 viewDensityData.datasets.forEach(function (dataset) {
@@ -308,6 +307,7 @@
                 });
                 window.viewDensityChart.update();
 
+               
                 // Updating Events data to chart
                 eventsData.labels = data.contentInfo.duration;
                 eventsData.datasets.forEach(function (dataset) {
@@ -322,6 +322,8 @@
                     }
                 });
                 window.eventsChart.update();
+
+                
 
                 jsonArr = [];
                 for (var i = 0; i < data.durationInSecond.length; i++) {
