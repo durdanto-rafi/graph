@@ -261,13 +261,16 @@ class GraphController extends Controller
                 // Creating array according to content duration
                 $this->contentInfo['duration'] = array();
 
-                $this->contentInfo['blocks'] = array();
+                $this->contentInfo['blocksForViewDensity'] = array();
+                $this->contentInfo['blocksForEvents'] = array();
+                
                 $duration = array_keys($logByDuration)[0];
                 for($i = 0; $i <= $duration; $i++)
                 {
                     $durationInSecond[$i] = array("second" => $i, "viewCount" => 0, "pauseCount" => 0, "forwardCount" => 0, "rewindCount" => 0);
                     array_push($this->contentInfo['duration'] , gmdate("i:s", $i));
-                    array_push($this->contentInfo['blocks'] , 0);
+                    array_push($this->contentInfo['blocksForViewDensity'] , 0);
+                    array_push($this->contentInfo['blocksForEvents'] , 0);
                 }
 
                 $events = array_values($logByDuration);
@@ -375,17 +378,19 @@ class GraphController extends Controller
                 // Getting Highest peak value
                 $maxViewCount = max($this->contentInfo['indexedViewCount']);
                 // Increasing Block value by 10% more than highest Peak 
-                $maxViewCount *= 1.10;
-                
-                foreach($blocks as $block){
-                    $position = floor($block->final_frame/100);
-                    $this->contentInfo['blocks'][$position] = $maxViewCount;
-                    //echo gmdate("H:i:s",$block->final_frame/100);
-                }
+                $maxViewCount *= 1.15;
 
-                //dd($this->contentInfo['blocks']);
-                //dd(json_encode($durationInSecond));
-                //dd($this->contentInfo);
+                // Getting Highest peak value from all Events
+                $maxEvents = max(max($this->contentInfo['indexedPauseCount']), max(abs(min($this->contentInfo['indexedForwardCount'])), max($this->contentInfo['indexedRewindCount'])));
+                // Increasing Block value by 15% more than highest Peak 
+                $maxEvents *= 1.15;
+                
+                foreach($blocks as $block)
+                {
+                    $position = floor($block->final_frame/100);
+                    $this->contentInfo['blocksForViewDensity'][$position] = $maxViewCount;
+                    $this->contentInfo['blocksForEvents'][$position] = $maxEvents;
+                }
             }
         }
         return $durationInSecond;

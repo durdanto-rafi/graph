@@ -302,7 +302,7 @@
                 viewDensityData.labels = data.contentInfo.duration;
                 viewDensityData.datasets.forEach(function (dataset) {
                     if(dataset.label == 'Blocks'){
-                        dataset.data = data.contentInfo.blocks;
+                        dataset.data = data.contentInfo.blocksForViewDensity;
                     }
                     if(dataset.label == 'View Density'){
                         dataset.data = data.contentInfo.indexedViewCount;
@@ -314,6 +314,9 @@
                 // Updating Events data to chart
                 eventsData.labels = data.contentInfo.duration;
                 eventsData.datasets.forEach(function (dataset) {
+                    if(dataset.label == 'Blocks'){
+                        dataset.data = data.contentInfo.blocksForEvents;
+                    }
                     if(dataset.label == 'Pause'){
                         dataset.data = data.contentInfo.indexedPauseCount;
                     }
@@ -323,10 +326,6 @@
                     if(dataset.label == 'Forward'){
                         dataset.data = data.contentInfo.indexedForwardCount;
                     }
-                    if(dataset.label == 'Blocks'){
-                        dataset.data = data.contentInfo.blocks;
-                    }
-                    
                 });
                 window.eventsChart.update();
 
