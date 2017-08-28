@@ -142,19 +142,16 @@ class GraphController extends Controller
             $logs = array();
             
             // Multiple Rank
-            for($i=0; $i<count($request->rank); $i++){
+            for($i=0; $i<count($request->rank); $i++)
+            {
                 $newLogs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
                 $logs = array_merge($logs, $newLogs);
             }
             
-            //$logs = $this->getLogData($request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
             $blocks = $this->getBlockMarks($request->contentNumber);
-            $durationInSecond = $this->processData($logs, $blocks);
-           
-            //$frames = gmdate("i:s",  floor(($blocks->final_frame/1000)));
-            //dd( $this->contentInfo);
+            $this->processData($logs, $blocks);
 
-    		return response()->json(['durationInSecond'=> $durationInSecond, 'contentInfo'=> $this->contentInfo]);
+    		return response()->json(['contentInfo'=> $this->contentInfo]);
     	}
     }
 
@@ -355,7 +352,8 @@ class GraphController extends Controller
 
                 
 
-                if($this->contentInfo['eventCount'] > 0){
+                if($this->contentInfo['eventCount'] > 0)
+                {
                     $this->contentInfo['eventPerView'] = floor($this->contentInfo['eventCount'] / $this->contentInfo['totalViewCount']);
                     $this->contentInfo['pauseRatio'] = number_format(($this->contentInfo['totalPauseCount'] / $this->contentInfo['eventCount'] * 100),  1, '.', '');
                     $this->contentInfo['forwardRatio'] = number_format($this->contentInfo['totalForwardCount'] / $this->contentInfo['eventCount'] * 100,  1, '.', '');
@@ -368,7 +366,8 @@ class GraphController extends Controller
                 $this->contentInfo['indexedForwardCount'] = array();
                 $this->contentInfo['indexedRewindCount'] = array();
 
-                foreach($durationInSecond as $key => $value){
+                foreach($durationInSecond as $key => $value)
+                {
                     array_push($this->contentInfo['indexedViewCount'] , $durationInSecond[$key]['viewCount']);
                     array_push($this->contentInfo['indexedPauseCount'] , $durationInSecond[$key]['pauseCount']);
                     array_push($this->contentInfo['indexedForwardCount'] , $durationInSecond[$key]['forwardCount']);
@@ -385,6 +384,7 @@ class GraphController extends Controller
                 // Increasing Block value by 15% more than highest Peak 
                 $maxEvents *= 1.15;
                 
+                // Preparing Block data
                 foreach($blocks as $block)
                 {
                     $position = floor($block->final_frame/100);
@@ -393,7 +393,6 @@ class GraphController extends Controller
                 }
             }
         }
-        return $durationInSecond;
     }
 
     // Getting duration

@@ -70,96 +70,113 @@
         </div>
 
         <div class="col-xs-12 col-sm-12 col-md-12 text-center">
-        <div class="form-group">
-            {{ Form::submit('Submit', array('class' => 'btn btn-primary btn-sm')) }}
-        </div></div>
-
-        <div class="col-xs-6 col-sm-6 col-md-6">
             <div class="form-group">
-                <label>Section Name</label> 
-                {!! Form::text('subject_section_name', null, array('class' => 'form-control', 'id'=>'txtSubjectSectionName', 'disabled')) !!}
+                {{ Form::submit('Submit', array('class' => 'btn btn-primary btn-xs')) }}
             </div>
         </div>
 
-        <div class="col-xs-6 col-sm-6 col-md-6">
-            <div class="form-group">
-                <label>Subject Name</label> 
-                {!! Form::text('subject_name', null, array('class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
-            </div>
-        </div>
-
-        <div class="col-xs-6 col-sm-6 col-md-6">
-            <div class="form-group">
-                <label>Viewded From</label> 
-                <div class="input-group date">
-                    {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredFrom', 'disabled')) !!}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xs-6 col-sm-6 col-md-6">
-            <div class="form-group">
-                <label>Viewded To</label> 
-                <div class="input-group date">
-                    {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredTo', 'disabled')) !!}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xs-3 col-sm-3 col-md-3">
-            <div class="form-group">
-                <label>Event</label> 
-                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
-            </div>
-        </div>
-
-        <div class="col-xs-3 col-sm-3 col-md-3">
-            <div class="form-group">
-                <label>View</label> 
-                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
-            </div>
-        </div>
-
-        <div class="col-xs-3 col-sm-3 col-md-3">
-            <div class="form-group">
-                <label>Student</label> 
-                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalStudent', 'disabled')) !!}
-            </div>
-        </div>
-
-        <div class="col-xs-3 col-sm-3 col-md-3">
-            <div class="form-group">
-                <label>E/V</label> 
-                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
-            </div>
-        </div>
-
-        <div class="col-xs-12 col-sm-12 col-md-12">
-            <div class="box-body">
-                <div class="chart">
-                    <canvas id="canEventsRatio"></canvas>
-                </div>
-            </div>
-        </div>
-        
-    </div>
-    <div class="col-xs-12 col-sm-8 col-md-8">
         <div class="col-xs-12 col-sm-12 col-md-12">
             <!-- LINE CHART -->
-            <div class="box box-info">
+            <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h3 class="box-title">View Density</h3>
+                    <h3 class="box-title">Content Information</h3>
 
                     <div class="box-tools pull-right">
                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                         </button>
-                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label>Section Name</label> 
+                            {!! Form::text('subject_section_name', null, array('class' => 'form-control', 'id'=>'txtSubjectSectionName', 'disabled')) !!}
+                        </div>
+                    </div>
+
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label>Subject Name</label> 
+                            {!! Form::text('subject_name', null, array('class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                        </div>
+                    </div>
+
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label>Viewded From</label> 
+                            <div class="input-group date">
+                                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredFrom', 'disabled')) !!}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label>Viewded To</label> 
+                            <div class="input-group date">
+                                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredTo', 'disabled')) !!}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-3 col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Event</label> 
+                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
+                        </div>
+                    </div>
+
+                    <div class="col-xs-3 col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>View</label> 
+                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
+                        </div>
+                    </div>
+
+                    <div class="col-xs-3 col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>Student</label> 
+                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalStudent', 'disabled')) !!}
+                        </div>
+                    </div>
+
+                    <div class="col-xs-3 col-sm-3 col-md-3">
+                        <div class="form-group">
+                            <label>E/V</label> 
+                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-12 col-md-12">
+                        <div class="box-body">
+                            <div class="chart">
+                                <canvas id="canEventsRatio"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+          <!-- /.box -->
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-8 col-md-8">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <!-- LINE CHART -->
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">View Density</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="box-body">
                     <div class="chart">
                         <canvas id="canViewDensity" ></canvas>
-                        <button id="btnResetZoomViewDensity" class="btn btn-primary btn-sm" onclick="return false;" > Reset zoom </button>
+                        <div class="text-center">
+                            <button id="btnResetZoomViewDensity" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
+                        </div>
                     </div>
                 </div>
                 <!-- /.box-body -->
@@ -169,20 +186,20 @@
 
         <div class="col-xs-12 col-sm-12 col-md-12">
             <!-- LINE CHART -->
-            <div class="box box-info">
+            <div class="box box-primary">
                 <div class="box-header with-border">
                     <h3 class="box-title">Events</h3>
-
                     <div class="box-tools pull-right">
                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                         </button>
-                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
                     </div>
                 </div>
                 <div class="box-body">
                     <div class="chart">
                         <canvas id="canEvents"></canvas>
-                        <button id="btnResetZoomEvents" class="btn btn-primary btn-sm" onclick="return false;" > Reset zoom </button>
+                        <div class="text-center">
+                            <button id="btnResetZoomEvents" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
+                        </div>
                     </div>
                 </div>
                 <!-- /.box-body -->
@@ -199,10 +216,8 @@
 
 @endsection 
 
-
 @section('script') 
 @parent
-
 <script type="text/javascript">
     $(".select2").select2();
     $('.overlay').hide();
@@ -282,7 +297,7 @@
             success: function (data) {
                 $('.overlay').hide();
 
-                if(data.durationInSecond.length == 0){
+                if(data.contentInfo.totalViewCount.length == 0){
                     swal("Sorry!", "No data");
                     return;
                 }
@@ -329,16 +344,13 @@
                 });
                 window.eventsChart.update();
 
+                // Updating Events Ratio data to chart
+                var eventsRatio = [parseFloat(data.contentInfo.pauseRatio), parseFloat(data.contentInfo.rewindRatio), parseFloat(data.contentInfo.forwardRatio)];
+                var eventsRatioColor = [window.chartColors.red, window.chartColors.green, window.chartColors.blue];
                 
-
-                jsonArr = [];
-                for (var i = 0; i < data.durationInSecond.length; i++) {
-                    jsonArr.push({
-                        x: data.durationInSecond[i].second,
-                        y: data.durationInSecond[i].viewCount
-                    });
-                }
-                drawEventsRatio(data.contentInfo.pauseRatio, data.contentInfo.forwardRatio, data.contentInfo.rewindRatio);
+                eventsRatioData.datasets[0].data = eventsRatio;
+                window.eventsRatioChart.update();
+                //drawEventsRatio(data.contentInfo.pauseRatio, data.contentInfo.forwardRatio, data.contentInfo.rewindRatio);
             },
             error: function(xhr, status, error) {
                 var err = eval("(" + xhr.responseText + ")");
@@ -365,10 +377,7 @@
         document.getElementById('txtEventPerView').value = '';
         document.getElementById('txtTotalStudent').value = '';
 
-        $("#line-chart-density").empty();
-        $("#line-chart-pause").empty();
-
-        drawEventsRatio(0,0,0);
+        //drawEventsRatio(0,0,0);
     }
 
     window.onload = function() {
@@ -417,35 +426,15 @@
                 }
             }
         });
-    };  
 
-    // Drawing Event's Ratio
-    function drawEventsRatio(pause, froward, rewind){
-        var MeSeContext = document.getElementById("canEventsRatio").getContext("2d");
-
-        MeSeContext.height = 20;
-        var MeSeData = {
-            labels: [
-                "Pause (%)",
-                "Rewind (%)",
-                "Forward (%)"
-            ],
-            datasets: [{
-                data: [pause, rewind, froward],
-                backgroundColor: ["#FF0000", "#669911", "#0000CD"],
-                hoverBackgroundColor: ["#66A2EB", "#FCCE56", "#008000"]
-            }]
-        };
-
-        var MeSeChart = new Chart(MeSeContext, {
+         //Events Ratio chart initialization
+        var ctxEventsRatio = document.getElementById("canEventsRatio").getContext("2d");
+        window.eventsRatioChart = new Chart(ctxEventsRatio, {
             type: 'horizontalBar',
-            data: MeSeData,
+            data: eventsRatioData,
             options: {
                 legend: {
                     display: false
-                },
-                animation: {
-                    duration: 0
                 },
                 scales: {
                     xAxes: [{
@@ -456,7 +445,9 @@
                 }
             }
         });
-    }
+
+    };  
+
     //iCheck for checkbox and radio inputs
     $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
         checkboxClass: 'icheckbox_minimal-blue',
@@ -501,21 +492,20 @@
         datasets: [{
             type: 'line',
             label: 'View Density',
-            borderColor: window.chartColors.blue,
+            borderColor: window.chartColors.sky,
             borderWidth: 2,
-            fill: false,
+            fill: true,
             data: [],
             pointRadius: 0,
             pointHoverBackgroundColor: 'red'
         }, {
             type: 'bar',
             label: 'Blocks',
-            backgroundColor: window.chartColors.red,
+            borderColor: window.chartColors.purple,
+            backgroundColor: window.chartColors.purple,
             data: [],
-            borderColor: "#8e44ad",
             borderWidth: 2
         }]
-
     };
 
     $('#btnResetZoomViewDensity').click(function () {
@@ -529,7 +519,8 @@
         datasets: [{
             type: 'line',
             label: 'Pause',
-            borderColor: "#FF0000",
+            borderColor: window.chartColors.red,
+            backgroundColor: window.chartColors.red,
             borderWidth: 2,
             fill: false,
             data: [],
@@ -538,7 +529,8 @@
         }, {
             type: 'line',
             label: 'Rewind',
-            borderColor: "#669911",
+            borderColor: window.chartColors.green,
+            backgroundColor: window.chartColors.green,
             borderWidth: 2,
             fill: false,
             data: [],
@@ -547,7 +539,8 @@
         }, {
             type: 'line',
             label: 'Forward',
-            borderColor: '#0000CD',
+            borderColor: window.chartColors.blue,
+            backgroundColor: window.chartColors.blue,
             borderWidth: 2,
             fill: false,
             data: [],
@@ -556,17 +549,29 @@
         }, {
             type: 'bar',
             label: 'Blocks',
-            backgroundColor: window.chartColors.red,
+            borderColor: window.chartColors.purple,
+            backgroundColor: window.chartColors.purple,
             data: [],
-            borderColor: "#8e44ad",
             borderWidth: 2
         }]
-
     };
 
     $('#btnResetZoomEvents').click(function () {
         window.eventsChart.resetZoom();
     });
+
+    var eventsRatioData = {
+        labels: [
+            "Pause (%)",
+            "Rewind (%)",
+            "Forward (%)"
+        ],
+        datasets: [{
+            data: [],
+            backgroundColor: ["#FF0000", "#669911", "#0000CD"],
+            hoverBackgroundColor: ["#66A2EB", "#FCCE56", "#008000"]
+        }]
+    };
 
 </script>
 @stop
