@@ -14,7 +14,7 @@
         <div class="col-xs-12 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Subject</label>
-                {!! Form::select('subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
+                {!! Form::select('Subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -22,7 +22,7 @@
         <div class="col-xs-12 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Content</label>
-                {!! Form::select('contentNumber', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
+                {!! Form::select('Content', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -30,7 +30,7 @@
         <div class="col-xs-12 col-sm-4 col-md-4">
             <div class="form-group">
                 <label>Test</label>
-                {!! Form::select('test', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
+                {!! Form::select('Test', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
                 <!-- /.input group -->
             </div>
         </div>
@@ -53,7 +53,7 @@
             <div class="form-group">
                 <label>From Date</label>
                 <div class="input-group date">
-                    {!! Form::text('dateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtFromDateInput', 'onkeypress'=>'return false;')) !!}
+                    {!! Form::text('DateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtFromDateInput', 'onkeypress'=>'return false;')) !!}
                 </div>
                 <!-- /.input group -->
             </div>
@@ -63,7 +63,7 @@
             <div class="form-group">
                 <label>To Date</label>
                 <div class="input-group date">
-                    {!! Form::text('dateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtToDateInput', 'onkeypress'=>'return false;')) !!}
+                    {!! Form::text('DateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtToDateInput', 'onkeypress'=>'return false;')) !!}
                 </div>
                 <!-- /.input group -->
             </div>
@@ -71,7 +71,7 @@
 
         <div class="col-xs-12 col-sm-12 col-md-12 text-center">
             <div class="form-group">
-                {{ Form::submit('Submit', array('class' => 'btn btn-primary btn-xs')) }}
+                {{ Form::submit('Submit', array('class' => 'btn btn-primary btn-sm')) }}
             </div>
         </div>
 
@@ -273,11 +273,11 @@
         });
 
         if(rank.length < 1 ){
-            error.push('rank');   
+            error.push('Rank');   
         }
 
         if(error.length > 0){
-            swal("Need to fillup !", error.join("\n"));
+            swal("Need to fillup !", error.join("\n"), "error");
             return false;
         }
 
