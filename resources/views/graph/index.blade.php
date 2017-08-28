@@ -433,6 +433,8 @@
             type: 'horizontalBar',
             data: eventsRatioData,
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 legend: {
                     display: false
                 },
@@ -440,7 +442,7 @@
                     xAxes: [{
                     }],
                     yAxes: [{
-                        barPercentage: 0.4
+                        barPercentage: 0.8
                     }]
                 }
             }
@@ -560,6 +562,7 @@
         window.eventsChart.resetZoom();
     });
 
+    //Event Ratio
     var eventsRatioData = {
         labels: [
             "Pause (%)",
@@ -568,8 +571,7 @@
         ],
         datasets: [{
             data: [],
-            backgroundColor: ["#FF0000", "#669911", "#0000CD"],
-            hoverBackgroundColor: ["#66A2EB", "#FCCE56", "#008000"]
+            backgroundColor: [window.chartColors.red, window.chartColors.green, window.chartColors.blue]
         }]
     };
 

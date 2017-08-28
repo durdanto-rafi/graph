@@ -204,8 +204,7 @@ class GraphController extends Controller
                                     INNER JOIN tbl_trial_test_result f ON f.student_number = a.student_number
                                     WHERE
                                         a.school_contents_number = ?
-                                    AND a.contents_download_datetime BETWEEN ?
-                                    AND ?
+                                    AND a.contents_download_datetime BETWEEN ? AND ?
                                     AND f.deviation_rank = ?
                                     AND f.top_subject_number = ?
                                     AND f.trial_test_number = ?
@@ -455,7 +454,8 @@ class GraphController extends Controller
         return $log;
     }
 
-    private function getBlockMarks($contentNumber){
+    private function getBlockMarks($contentNumber)
+    {
         return TblSchoolContentsBlock::where('school_contents_number', $contentNumber)->get();
     }
 }
