@@ -301,6 +301,9 @@
                 // Updating View Density data to chart
                 viewDensityData.labels = data.contentInfo.duration;
                 viewDensityData.datasets.forEach(function (dataset) {
+                    if(dataset.label == 'Blocks'){
+                        dataset.data = data.contentInfo.blocks;
+                    }
                     if(dataset.label == 'View Density'){
                         dataset.data = data.contentInfo.indexedViewCount;
                     }
@@ -320,6 +323,10 @@
                     if(dataset.label == 'Forward'){
                         dataset.data = data.contentInfo.indexedForwardCount;
                     }
+                    if(dataset.label == 'Blocks'){
+                        dataset.data = data.contentInfo.blocks;
+                    }
+                    
                 });
                 window.eventsChart.update();
 
@@ -377,7 +384,7 @@
         //View Density chart initialization
         var ctxViewDensity = document.getElementById("canViewDensity").getContext("2d");
         window.viewDensityChart = new Chart(ctxViewDensity, {
-            type: 'line',
+            type: 'bar',
             data: viewDensityData,
             options: {
                 responsive: true,
@@ -396,7 +403,7 @@
         //Events chart initialization
         var ctxEvents = document.getElementById("canEvents").getContext("2d");
         window.eventsChart = new Chart(ctxEvents, {
-            type: 'line',
+            type: 'bar',
             data: eventsData,
             options: {
                 responsive: true,
@@ -503,10 +510,10 @@
             pointHoverBackgroundColor: 'red'
         }, {
             type: 'bar',
-            label: 'Dataset 2',
+            label: 'Blocks',
             backgroundColor: window.chartColors.red,
-            data: [ ],
-            borderColor: 'white',
+            data: [],
+            borderColor: "#8e44ad",
             borderWidth: 2
         }]
 
@@ -547,6 +554,13 @@
             data: [],
             pointRadius: 0,
             pointHoverBackgroundColor: 'red'
+        }, {
+            type: 'bar',
+            label: 'Blocks',
+            backgroundColor: window.chartColors.red,
+            data: [],
+            borderColor: "#8e44ad",
+            borderWidth: 2
         }]
 
     };

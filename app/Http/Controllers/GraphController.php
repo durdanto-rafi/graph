@@ -152,7 +152,7 @@ class GraphController extends Controller
             $durationInSecond = $this->processData($logs, $blocks);
            
             //$frames = gmdate("i:s",  floor(($blocks->final_frame/1000)));
-            dd( $this->contentInfo);
+            //dd( $this->contentInfo);
 
     		return response()->json(['durationInSecond'=> $durationInSecond, 'contentInfo'=> $this->contentInfo]);
     	}
@@ -266,12 +266,8 @@ class GraphController extends Controller
                 for($i = 0; $i <= $duration; $i++)
                 {
                     $durationInSecond[$i] = array("second" => $i, "viewCount" => 0, "pauseCount" => 0, "forwardCount" => 0, "rewindCount" => 0);
-                    array_push($this->contentInfo['duration'] ,  $i);
-                    foreach($blocks as $block){
-                        if($i === floor($block->final_number/1000)){
-                            array_push($this->contentInfo['blocks'] , $i);
-                        }
-                    }
+                    array_push($this->contentInfo['duration'] , gmdate("i:s", $i));
+                    array_push($this->contentInfo['blocks'] , 0);
                 }
 
                 $events = array_values($logByDuration);
@@ -376,10 +372,18 @@ class GraphController extends Controller
                     array_push($this->contentInfo['indexedRewindCount'] , $durationInSecond[$key]['rewindCount']);
                 }
 
-                //dd( $this->contentInfo['indexedViewCount']);
-               
+                // Getting Highest peak value
+                $maxViewCount = max($this->contentInfo['indexedViewCount']);
+                // Increasing Block value by 10% more than highest Peak 
+                $maxViewCount *= 1.10;
                 
-                
+                foreach($blocks as $block){
+                    $position = floor($block->final_frame/100);
+                    $this->contentInfo['blocks'][$position] = $maxViewCount;
+                    //echo gmdate("H:i:s",$block->final_frame/100);
+                }
+
+                //dd($this->contentInfo['blocks']);
                 //dd(json_encode($durationInSecond));
                 //dd($this->contentInfo);
             }
