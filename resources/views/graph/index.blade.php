@@ -437,13 +437,6 @@
                 maintainAspectRatio: false,
                 legend: {
                     display: false
-                },
-                scales: {
-                    xAxes: [{
-                    }],
-                    yAxes: [{
-                        barPercentage: 0.8
-                    }]
                 }
             }
         });
