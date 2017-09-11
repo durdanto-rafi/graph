@@ -166,6 +166,7 @@ class GraphController extends Controller
             //     $logs = array_merge($logs, $newLogs);
             // }
             $logs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
+            dd($logs->toArray());
             
             $blocks = $this->getBlockMarks($request->contentNumber);
             $this->processData($logs, $blocks);
@@ -258,9 +259,9 @@ class GraphController extends Controller
                         ->join('tbl_school_subject_section', 'tbl_school_contents.school_subject_section_number', '=', 'tbl_school_subject_section.school_subject_section_number')
                         ->join('tbl_school_subject', 'tbl_school_subject_section.school_subject_number', '=', 'tbl_school_subject.school_subject_number')
                         ->join('tbl_trial_test_result', 'log_school_contents_history_student.student_number', '=', 'tbl_trial_test_result.student_number')
-                        ->select('log_school_contents_history_student_event.event_number', 'log_school_contents_history_student_event.history_number', 'log_school_contents_history_student.duration', 
+                        ->select('"" as state', 'log_school_contents_history_student_event.event_number', 'log_school_contents_history_student_event.history_number', 'log_school_contents_history_student.duration', 
                         'log_school_contents_history_student_event.progress_time', 'log_school_contents_history_student_event.position', 'log_school_contents_history_student_event.event_action_number', 
-                        'log_school_contents_history_student_event.speed_number', 'tbl_school_contents.name', 'tbl_school_subject_section.name', 'tbl_school_subject.name', 'log_school_contents_history_student.registered_datetime')
+                        'log_school_contents_history_student_event.speed_number', 'tbl_school_contents.name AS contents_name' , 'tbl_school_subject_section.name  AS subject_section_name', 'tbl_school_subject.name AS subject_name', 'log_school_contents_history_student.registered_datetime')
                         ->where('log_school_contents_history_student.contents_download_datetime', '>=', $dateFrom)
                         ->where('log_school_contents_history_student.contents_download_datetime', '<=', $dateTo)
                         ->where('log_school_contents_history_student.school_contents_number', $contentNummber)
