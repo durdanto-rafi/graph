@@ -6,11 +6,29 @@ use Illuminate\Http\Request;
 use App\Models\MstTopSubject;
 use App\Models\MstDeviationValueRank;
 use App\Models\TblTrialTestName;
+use App\Models\LogSchoolContentsHistoryStudent;
 use App\Models\TblSchoolContentsBlock;
 
 class GraphController extends Controller
 {
-    public $contentInfo = array("eventCount" => 0, "eventPerView" => 0, "totalPauseCount" => 0, "totalForwardCount" => 0, "totalRewindCount" => 0, "totalViewCount" => 0);
+    public $contentInfo = array("eventCount" => 0, 
+                                "eventPerView" => 0, 
+                                "pauseRatio" => 0, 
+                                "forwardRatio" => 0, 
+                                "rewindRatio" => 0, 
+                                "totalPauseCount" => 0, 
+                                "totalForwardCount" => 0, 
+                                "totalRewindCount" => 0, 
+                                "totalStudentCount" => 0,
+                                "totalViewCount" => 0,
+                                "blocksForEvents" => [],
+                                "blocksForViewDensity" => [],
+                                "indexedForwardCount" => [],
+                                "indexedPauseCount" => [],
+                                "indexedRewindCount" => [],
+                                "indexedViewCount" => [],
+                                "duration" => [],
+                            );
 
     /**
      * Display a listing of the resource.
@@ -142,11 +160,12 @@ class GraphController extends Controller
             $logs = array();
             
             // Multiple Rank
-            for($i=0; $i<count($request->rank); $i++)
-            {
-                $newLogs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
-                $logs = array_merge($logs, $newLogs);
-            }
+            // for($i=0; $i<count($request->rank); $i++)
+            // {
+            //     $newLogs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
+            //     $logs = array_merge($logs, $newLogs);
+            // }
+            $logs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
             
             $blocks = $this->getBlockMarks($request->contentNumber);
             $this->processData($logs, $blocks);
@@ -155,7 +174,7 @@ class GraphController extends Controller
     	}
     }
 
-    private function getLogData($test, $contentNummber, $dateFrom, $dateTo, $rank, $subject){
+    private function getLogDataRawQuery($test, $contentNummber, $dateFrom, $dateTo, $rank, $subject){
         // Database query
         $logs = DB::transaction(function() use ($test, $contentNummber, $dateFrom, $dateTo, $rank, $subject)
         {
@@ -229,6 +248,36 @@ class GraphController extends Controller
             }
         });
 
+        return $logs;
+    }
+
+    private function getLogData($test, $contentNummber, $dateFrom, $dateTo, $ranks, $subject)
+    {
+        $logs = LogSchoolContentsHistoryStudent::join('log_school_contents_history_student_event', 'log_school_contents_history_student.history_number', '=', 'log_school_contents_history_student_event.history_number')
+                        ->join('tbl_school_contents', 'log_school_contents_history_student.school_contents_number', '=', 'tbl_school_contents.school_contents_number')
+                        ->join('tbl_school_subject_section', 'tbl_school_contents.school_subject_section_number', '=', 'tbl_school_subject_section.school_subject_section_number')
+                        ->join('tbl_school_subject', 'tbl_school_subject_section.school_subject_number', '=', 'tbl_school_subject.school_subject_number')
+                        ->join('tbl_trial_test_result', 'log_school_contents_history_student.student_number', '=', 'tbl_trial_test_result.student_number')
+                        ->select('log_school_contents_history_student_event.event_number', 'log_school_contents_history_student_event.history_number', 'log_school_contents_history_student.duration', 
+                        'log_school_contents_history_student_event.progress_time', 'log_school_contents_history_student_event.position', 'log_school_contents_history_student_event.event_action_number', 
+                        'log_school_contents_history_student_event.speed_number', 'tbl_school_contents.name', 'tbl_school_subject_section.name', 'tbl_school_subject.name', 'log_school_contents_history_student.registered_datetime')
+                        ->where('log_school_contents_history_student.contents_download_datetime', '>=', $dateFrom)
+                        ->where('log_school_contents_history_student.contents_download_datetime', '<=', $dateTo)
+                        ->where('log_school_contents_history_student.school_contents_number', $contentNummber)
+                        ->whereIn('tbl_trial_test_result.deviation_rank', $ranks)
+                        ->where('tbl_trial_test_result.top_subject_number', $subject)
+                        ->where('tbl_trial_test_result.trial_test_number', $test)
+                        ->whereNotNull('log_school_contents_history_student.history_upload_datetime')
+                        ->whereNotNull('log_school_contents_history_student.duration')
+                        ->whereNull('log_school_contents_history_student.player3_code')
+                        ->where('log_school_contents_history_student_event.event_action_number', '!=', 3)
+                        ->where(function($q){
+                            $q  ->where('log_school_contents_history_student_event.event_action_number', '!=', 1)
+                                ->where('log_school_contents_history_student_event.speed_number', '!=', 0);
+                        })
+                        ->get();
+
+            //dd(json_encode($logs));
         return $logs;
     }
 
@@ -429,17 +478,14 @@ class GraphController extends Controller
 
             else
             {
-                if($log->state != 'F')
-                {   
-                    if($previousLog->event_action_number == 1 && $log->event_action_number == 1 && $previousLog->state == null)
-                    {
-                        $previousLog->state = $log->event_number;
-                        $log->state = $log->event_number;
-                    }
-                    $this->fixDuration($maxKey, $log);
-                    $durations[$log->duration][] = $log;
-                    $previousLog = $log;
+                if($previousLog->event_action_number == 1 && $log->event_action_number == 1 && $previousLog->state == null)
+                {
+                    $previousLog->state = $log->event_number;
+                    $log->state = $log->event_number;
                 }
+                $this->fixDuration($maxKey, $log);
+                $durations[$log->duration][] = $log;
+                $previousLog = $log;
             }
         }
       
