@@ -162,11 +162,11 @@ class GraphController extends Controller
             // Multiple Rank
             // for($i=0; $i<count($request->rank); $i++)
             // {
-            //     $newLogs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
+            //     $newLogs = $this->getLogDataRawQuery($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
             //     $logs = array_merge($logs, $newLogs);
             // }
             $logs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
-            dd($logs->toArray());
+            //dd($logs);
             
             $blocks = $this->getBlockMarks($request->contentNumber);
             $this->processData($logs, $blocks);
@@ -212,7 +212,7 @@ class GraphController extends Controller
                                         d. NAME AS subject_section_name,
                                         e. NAME AS subject_name,
                                         a.student_number,
-                                        DATE_FORMAT(a.registered_datetime, '%Y-%m-%d') AS log_registered_day,
+                                        a.registered_datetime AS log_registered_day,
                                         @prePreviousEventActionNumber := @previousEventActionNumber No_Need,
                                         @previousEventActionNumber := b.event_action_number No_Need1
                                     FROM
@@ -233,7 +233,7 @@ class GraphController extends Controller
                                     AND a.player3_code IS NULL
                                     AND b.event_action_number <> 3 -- Auto playback
                                     -- Changing position in pause mode
-                                    AND ! (
+                                    AND  !(
                                         b.event_action_number = 1
                                         AND b.speed_number = 0
                                     )
@@ -259,9 +259,12 @@ class GraphController extends Controller
                         ->join('tbl_school_subject_section', 'tbl_school_contents.school_subject_section_number', '=', 'tbl_school_subject_section.school_subject_section_number')
                         ->join('tbl_school_subject', 'tbl_school_subject_section.school_subject_number', '=', 'tbl_school_subject.school_subject_number')
                         ->join('tbl_trial_test_result', 'log_school_contents_history_student.student_number', '=', 'tbl_trial_test_result.student_number')
-                        ->select('"" as state', 'log_school_contents_history_student_event.event_number', 'log_school_contents_history_student_event.history_number', 'log_school_contents_history_student.duration', 
-                        'log_school_contents_history_student_event.progress_time', 'log_school_contents_history_student_event.position', 'log_school_contents_history_student_event.event_action_number', 
-                        'log_school_contents_history_student_event.speed_number', 'tbl_school_contents.name AS contents_name' , 'tbl_school_subject_section.name  AS subject_section_name', 'tbl_school_subject.name AS subject_name', 'log_school_contents_history_student.registered_datetime')
+                        ->select(DB::raw('"null" as state, log_school_contents_history_student_event.event_number, log_school_contents_history_student_event.history_number, FLOOR(log_school_contents_history_student.duration / 1000) as duration, 
+                                            FLOOR(log_school_contents_history_student_event.progress_time / 1000) as progress_time, FLOOR(log_school_contents_history_student_event.position / 1000) as position, log_school_contents_history_student_event.event_action_number, 
+                                            log_school_contents_history_student_event.speed_number, tbl_school_contents.name AS contents_name , tbl_school_subject_section.name  AS subject_section_name, 
+                                            tbl_school_subject.name AS subject_name, log_school_contents_history_student.student_number, log_school_contents_history_student.registered_datetime
+                                        ')
+                                )
                         ->where('log_school_contents_history_student.contents_download_datetime', '>=', $dateFrom)
                         ->where('log_school_contents_history_student.contents_download_datetime', '<=', $dateTo)
                         ->where('log_school_contents_history_student.school_contents_number', $contentNummber)
@@ -272,9 +275,9 @@ class GraphController extends Controller
                         ->whereNotNull('log_school_contents_history_student.duration')
                         ->whereNull('log_school_contents_history_student.player3_code')
                         ->where('log_school_contents_history_student_event.event_action_number', '!=', 3)
-                        ->where(function($q){
-                            $q  ->where('log_school_contents_history_student_event.event_action_number', '!=', 1)
-                                ->where('log_school_contents_history_student_event.speed_number', '!=', 0);
+                        ->where(function($query){
+                            $query->where('log_school_contents_history_student_event.event_action_number', '!=', 1)
+                                    ->orWhere('log_school_contents_history_student_event.speed_number', '!=', 0);
                         })
                         ->get();
 
