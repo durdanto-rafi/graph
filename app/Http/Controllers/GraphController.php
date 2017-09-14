@@ -126,7 +126,7 @@ class GraphController extends Controller
      */
     public function getSubjectContents(Request $request)
     {
-    	if($request->ajax()){
+        if($request->ajax()){
     		$contents = DB::select("SELECT DISTINCT
                                         d.school_contents_number
                                     FROM
@@ -166,7 +166,6 @@ class GraphController extends Controller
             //     $logs = array_merge($logs, $newLogs);
             // }
             $logs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
-            //dd($logs);
             
             $blocks = $this->getBlockMarks($request->contentNumber);
             $this->processData($logs, $blocks);
@@ -259,14 +258,13 @@ class GraphController extends Controller
                         ->join('tbl_school_subject_section', 'tbl_school_contents.school_subject_section_number', '=', 'tbl_school_subject_section.school_subject_section_number')
                         ->join('tbl_school_subject', 'tbl_school_subject_section.school_subject_number', '=', 'tbl_school_subject.school_subject_number')
                         ->join('tbl_trial_test_result', 'log_school_contents_history_student.student_number', '=', 'tbl_trial_test_result.student_number')
-                        ->select(DB::raw('"null" as state, log_school_contents_history_student_event.event_number, log_school_contents_history_student_event.history_number, FLOOR(log_school_contents_history_student.duration / 1000) as duration, 
+                        ->select(DB::raw('null as state, log_school_contents_history_student_event.event_number, log_school_contents_history_student_event.history_number, FLOOR(log_school_contents_history_student.duration / 1000) as duration, 
                                             FLOOR(log_school_contents_history_student_event.progress_time / 1000) as progress_time, FLOOR(log_school_contents_history_student_event.position / 1000) as position, log_school_contents_history_student_event.event_action_number, 
                                             log_school_contents_history_student_event.speed_number, tbl_school_contents.name AS contents_name , tbl_school_subject_section.name  AS subject_section_name, 
-                                            tbl_school_subject.name AS subject_name, log_school_contents_history_student.student_number, log_school_contents_history_student.registered_datetime
+                                            tbl_school_subject.name AS subject_name, log_school_contents_history_student.student_number,  DATE_FORMAT(log_school_contents_history_student.registered_datetime, "%Y-%m-%d") AS log_registered_day 
                                         ')
                                 )
-                        ->where('log_school_contents_history_student.contents_download_datetime', '>=', $dateFrom)
-                        ->where('log_school_contents_history_student.contents_download_datetime', '<=', $dateTo)
+                        ->whereBetween('log_school_contents_history_student.contents_download_datetime', [$dateFrom, $dateTo])
                         ->where('log_school_contents_history_student.school_contents_number', $contentNummber)
                         ->whereIn('tbl_trial_test_result.deviation_rank', $ranks)
                         ->where('tbl_trial_test_result.top_subject_number', $subject)
@@ -280,8 +278,6 @@ class GraphController extends Controller
                                     ->orWhere('log_school_contents_history_student_event.speed_number', '!=', 0);
                         })
                         ->get();
-
-            //dd(json_encode($logs));
         return $logs;
     }
 
@@ -301,12 +297,14 @@ class GraphController extends Controller
             }
             $this->contentInfo['totalViewCount'] = count($histories);
             $this->contentInfo['totalStudentCount'] = count($students);
-            //dd(array_keys($students));
+            //dd($this->contentInfo);
 
 
             $logByDuration = $this->getDuration($logs);
+            //dd(json_encode($logByDuration));
             if(count($logByDuration) == 1)
             {
+                
                 // Creating array according to content duration
                 $this->contentInfo['duration'] = array();
 
@@ -323,7 +321,7 @@ class GraphController extends Controller
                 }
 
                 $events = array_values($logByDuration);
-
+                
                 // Loading contect Information
                 if(count($events[0]) > 0)
                 {
@@ -470,30 +468,30 @@ class GraphController extends Controller
         }
 
         // Adjusting bug data calculating with original duration
-        $durations = array();
+        $maxDurations = array();
         $previousLog = null;
         foreach($logs as $log)
         { 
+            $this->fixDuration($maxKey, $log);
             if($previousLog == null)
             {
-                $durations[$log->duration][] = $previousLog = $log;
+                $maxDurations[$maxKey][] = $previousLog = $log;
                 continue;
             }
 
             else
             {
+                // Getting pair value for Seeking
                 if($previousLog->event_action_number == 1 && $log->event_action_number == 1 && $previousLog->state == null)
                 {
                     $previousLog->state = $log->event_number;
                     $log->state = $log->event_number;
                 }
-                $this->fixDuration($maxKey, $log);
-                $durations[$log->duration][] = $log;
+                $maxDurations[$maxKey][] = $log;
                 $previousLog = $log;
             }
         }
-      
-        return $durations;
+        return $maxDurations;
     }
 
     private function fixDuration($realDuration, $log)
