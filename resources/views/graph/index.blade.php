@@ -163,25 +163,34 @@
     <div class="col-xs-12 col-sm-8 col-md-8">
         <div class="col-xs-12 col-sm-12 col-md-12">
             <!-- LINE CHART -->
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h3 class="box-title">View Density</h3>
-                    <div class="box-tools pull-right">
-                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="box-body">
-                    <div class="chart">
-                        <canvas id="canViewDensity" ></canvas>
-                        <div class="text-center">
-                            <button id="btnResetZoomViewDensity" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="#settings" data-toggle="tab">View Density</a></li>
+                    <li><a href="#password" data-toggle="tab">EVent Density / Event Count * 100</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="active tab-pane" id="settings">
+                            <div class="chart">
+                            <canvas id="canViewDensity" ></canvas>
+                            <div class="text-center">
+                                <button id="btnResetZoomViewDensity" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
+                            </div>
                         </div>
                     </div>
+                    <!-- /.tab-pane -->
+                    <div class="tab-pane" id="password">
+                            <div class="chart">
+                            <canvas id="canViewDensityPerCount" ></canvas>
+                            <div class="text-center">
+                                <button id="btnResetZoomDensityPerView" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.tab-pane -->
                 </div>
-                <!-- /.box-body -->
+                <!-- /.tab-content -->
             </div>
-          <!-- /.box -->
+            <!-- /.nav-tabs-custom -->
         </div>
 
         <div class="col-xs-12 col-sm-12 col-md-12">
@@ -344,6 +353,7 @@
                 });
                 window.eventsChart.update();
 
+               
                 // Updating Events Ratio data to chart
                 var eventsRatio = [parseFloat(data.contentInfo.pauseRatio), parseFloat(data.contentInfo.rewindRatio), parseFloat(data.contentInfo.forwardRatio)];
                 var eventsRatioColor = [window.chartColors.red, window.chartColors.green, window.chartColors.blue];
@@ -351,7 +361,19 @@
                 eventsRatioData.datasets[0].data = eventsRatio;
                 eventsRatioData.labels = ["Pause ("+ parseFloat(data.contentInfo.pauseRatio)+"%)","Rewind ("+ parseFloat(data.contentInfo.rewindRatio)+"%)","Forward ("+ parseFloat(data.contentInfo.forwardRatio)+"%)"];
                 window.eventsRatioChart.update();
-                //drawEventsRatio(data.contentInfo.pauseRatio, data.contentInfo.forwardRatio, data.contentInfo.rewindRatio);
+                
+               
+                // Updating View Density data Per Count to chart
+                viewDensityPerCountData.labels = data.contentInfo.duration;
+                viewDensityPerCountData.datasets.forEach(function (dataset) {
+                    if(dataset.label == 'Blocks'){
+                        dataset.data = data.contentInfo.blocksForViewDensity;
+                    }
+                    if(dataset.label == 'View Density Per Count'){
+                        dataset.data = data.contentInfo.indexedViewDensityPerCount;
+                    }
+                });
+                window.viewDensityPerCountChart.update();
             },
             error: function(xhr, status, error) {
                 var err = eval("(" + xhr.responseText + ")");
@@ -446,6 +468,25 @@
                             }
                         
                     }]
+                }
+            }
+        });
+
+        //View Density Per count chart initialization
+        var ctxViewDensityPerCount = document.getElementById("canViewDensityPerCount").getContext("2d");
+        window.viewDensityPerCountChart = new Chart(ctxViewDensityPerCount, {
+            type: 'bar',
+            data: viewDensityPerCountData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                pan: {
+                    enabled: true,
+                    mode: 'y',
+                },
+                zoom: {
+                    enabled: true,                      
+                    mode: 'y',
                 }
             }
         });
@@ -560,6 +601,32 @@
             backgroundColor: [window.chartColors.red, window.chartColors.green, window.chartColors.blue]
         }]
     };
+
+    // View Density per Total count
+    var viewDensityPerCountData = {
+        labels: [],
+        datasets: [{
+            type: 'line',
+            label: 'View Density Per Count',
+            borderColor: window.chartColors.sky,
+            borderWidth: 2,
+            fill: true,
+            data: [],
+            pointRadius: 0,
+            pointHoverBackgroundColor: 'red'
+        }, {
+            type: 'bar',
+            label: 'Blocks',
+            borderColor: window.chartColors.purple,
+            backgroundColor: window.chartColors.purple,
+            data: [],
+            borderWidth: 2
+        }]
+    };
+
+    $('#btnResetZoomDensityPerView').click(function () {
+        window.viewDensityPerCountChart.resetZoom();
+    });
 
 </script>
 @stop

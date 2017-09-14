@@ -28,6 +28,7 @@ class GraphController extends Controller
                                 "indexedRewindCount" => [],
                                 "indexedViewCount" => [],
                                 "duration" => [],
+                                "indexedViewDensityPerCount" => [],
                             );
 
     /**
@@ -422,6 +423,8 @@ class GraphController extends Controller
                     array_push($this->contentInfo['indexedPauseCount'] , $durationInSecond[$key]['pauseCount']);
                     array_push($this->contentInfo['indexedForwardCount'] , $durationInSecond[$key]['forwardCount']);
                     array_push($this->contentInfo['indexedRewindCount'] , $durationInSecond[$key]['rewindCount']);
+                    array_push($this->contentInfo['indexedViewDensityPerCount'] , $durationInSecond[$key]['viewCount'] / $this->contentInfo['totalViewCount'] * 100);
+                    
                 }
 
                 // Getting Highest peak value
