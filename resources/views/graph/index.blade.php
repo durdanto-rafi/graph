@@ -349,6 +349,7 @@
                 var eventsRatioColor = [window.chartColors.red, window.chartColors.green, window.chartColors.blue];
                 
                 eventsRatioData.datasets[0].data = eventsRatio;
+                eventsRatioData.labels = ["Pause ("+ parseFloat(data.contentInfo.pauseRatio)+"%)","Rewind ("+ parseFloat(data.contentInfo.rewindRatio)+"%)","Forward ("+ parseFloat(data.contentInfo.forwardRatio)+"%)"];
                 window.eventsRatioChart.update();
                 //drawEventsRatio(data.contentInfo.pauseRatio, data.contentInfo.forwardRatio, data.contentInfo.rewindRatio);
             },
@@ -361,8 +362,7 @@
 
     function fmtMSS(s)
     {
-        //return(s-(s%=60))/60+(9<s?':':':0')+s
-        return s
+        return(s-(s%=60))/60+(9<s?':':':0')+s
     }
 
     function clearData()
@@ -437,6 +437,15 @@
                 maintainAspectRatio: false,
                 legend: {
                     display: false
+                },
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            max: 100
+                            }
+                        
+                    }]
                 }
             }
         });
