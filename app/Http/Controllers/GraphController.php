@@ -276,7 +276,7 @@ class GraphController extends Controller
                         ->where('log_school_contents_history_student_event.event_action_number', '!=', 3)
                         ->where(function($query){
                             $query->where('log_school_contents_history_student_event.event_action_number', '!=', 1)
-                                    ->orWhere('log_school_contents_history_student_event.speed_number', '!=', 0);
+                                ->orWhere('log_school_contents_history_student_event.speed_number', '!=', 0);
                         })
                         ->get();
         return $logs;
@@ -423,7 +423,7 @@ class GraphController extends Controller
                     array_push($this->contentInfo['indexedPauseCount'] , $durationInSecond[$key]['pauseCount']);
                     array_push($this->contentInfo['indexedForwardCount'] , $durationInSecond[$key]['forwardCount']);
                     array_push($this->contentInfo['indexedRewindCount'] , $durationInSecond[$key]['rewindCount']);
-                    array_push($this->contentInfo['indexedViewDensityPerCount'] , $durationInSecond[$key]['viewCount'] / $this->contentInfo['totalViewCount'] * 100);
+                    array_push($this->contentInfo['indexedViewDensityPerCount'] , ($durationInSecond[$key]['viewCount'] / $this->contentInfo['totalViewCount']) * 100);
                     
                 }
 

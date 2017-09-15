@@ -105,6 +105,10 @@ canvas {
   height:250px !important;
 }
 
+#canViewDensityPerCount {
+  height:250px !important;
+}
+
 #canEvents {
   height:250px !important;
 }

@@ -11,62 +11,79 @@
 
 {!! Form::open(array('id'=>'frmGraph')) !!}
     <div class="col-xs-12 col-sm-4 col-md-4">
-        <div class="col-xs-12 col-sm-4 col-md-4">
-            <div class="form-group">
-                <label>Subject</label>
-                {!! Form::select('Subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
-                <!-- /.input group -->
-            </div>
-        </div>
-
-        <div class="col-xs-12 col-sm-4 col-md-4">
-            <div class="form-group">
-                <label>Content</label>
-                {!! Form::select('Content', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
-                <!-- /.input group -->
-            </div>
-        </div>
-
-        <div class="col-xs-12 col-sm-4 col-md-4">
-            <div class="form-group">
-                <label>Test</label>
-                {!! Form::select('Test', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
-                <!-- /.input group -->
-            </div>
-        </div>
-
-        <div class="col-xs-12 col-sm-6 col-md-6">
-            <label>Rank</label>
-            <div class="form-group">
-                <label>
-                    <input tabindex="1" type="checkbox" id="chkAll" /> All<br/>
-                    @foreach ($ranks as $rank)
-                        <input tabindex="1" type="checkbox" name="rank" id="chkGroup" value="{{$rank->rank_number}}"> {{$rank->name}} <br>
-                    @endforeach
-                </label>
-            </div>
-        </div>
-          
-          <!-- /.box -->
-
-        <div class="col-xs-6 col-sm-6 col-md-6">
-            <div class="form-group">
-                <label>From Date</label>
-                <div class="input-group date">
-                    {!! Form::text('DateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtFromDateInput', 'onkeypress'=>'return false;')) !!}
+        <div class="row">
+            <div class="col-xs-12 col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Subject</label>
+                    {!! Form::select('Subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
+                    <!-- /.input group -->
                 </div>
-                <!-- /.input group -->
+            </div>
+
+            <div class="col-xs-12 col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Content</label>
+                    {!! Form::select('Content', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
+                    <!-- /.input group -->
+                </div>
+            </div>
+
+            <div class="col-xs-12 col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>Test</label>
+                    {!! Form::select('Test', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
+                    <!-- /.input group -->
+                </div>
             </div>
         </div>
-
-        <div class="col-xs-6 col-sm-6 col-md-6">
-            <div class="form-group">
-                <label>To Date</label>
-                <div class="input-group date">
-                    {!! Form::text('DateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtToDateInput', 'onkeypress'=>'return false;')) !!}
+        <div class="row">
+            <div class="col-xs-12 col-sm-4 col-md-4">
+                <label>Rank</label>
+                <div class="form-group">
+                    <label>
+                        <input tabindex="1" type="checkbox" id="chkAll" /> All<br/>
+                        @foreach ($ranks as $rank)
+                            <input tabindex="1" type="checkbox" name="rank" id="chkGroup" value="{{$rank->rank_number}}"> {{$rank->name}} <br>
+                        @endforeach
+                    </label>
                 </div>
-                <!-- /.input group -->
             </div>
+
+            <div class="col-xs-12 col-sm-4 col-md-4">
+                <label>Growth</label>
+                <div class="form-group">
+                    <label>
+                        <input tabindex="1" type="checkbox" id="chkOver" /> over 3 poins<br/>
+                        <input tabindex="1" type="checkbox" id="chkLittle" /> change little<br/>
+                        <input tabindex="1" type="checkbox" id="chkUnder" /> under 3 points<br/>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- /.box -->
+            <div class="row">
+                <div class="col-xs-6 col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <div class="input-group date">
+                            {!! Form::text('DateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtFromDateInput', 'onkeypress'=>'return false;')) !!}
+                        </div>
+                        <!-- /.input group -->
+                    </div>
+                </div>
+
+                <div class="col-xs-6 col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <label>To Date</label>
+                        <div class="input-group date">
+                            {!! Form::text('DateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtToDateInput', 'onkeypress'=>'return false;')) !!}
+                        </div>
+                        <!-- /.input group -->
+                    </div>
+                </div>
+            </div>
+
+            
         </div>
 
         <div class="col-xs-12 col-sm-12 col-md-12 text-center">
@@ -165,12 +182,12 @@
             <!-- LINE CHART -->
             <div class="nav-tabs-custom">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a href="#settings" data-toggle="tab">View Density</a></li>
+                    <li class="active"><a href="#density" data-toggle="tab">View Density</a></li>
                     <li><a href="#password" data-toggle="tab">EVent Density / Event Count * 100</a></li>
                 </ul>
                 <div class="tab-content">
-                    <div class="active tab-pane" id="settings">
-                            <div class="chart">
+                    <div class="active tab-pane" id="density">
+                        <div class="chart">
                             <canvas id="canViewDensity" ></canvas>
                             <div class="text-center">
                                 <button id="btnResetZoomViewDensity" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
@@ -179,7 +196,7 @@
                     </div>
                     <!-- /.tab-pane -->
                     <div class="tab-pane" id="password">
-                            <div class="chart">
+                        <div class="chart">
                             <canvas id="canViewDensityPerCount" ></canvas>
                             <div class="text-center">
                                 <button id="btnResetZoomDensityPerView" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
