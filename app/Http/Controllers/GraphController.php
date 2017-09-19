@@ -166,6 +166,8 @@ class GraphController extends Controller
             //     $newLogs = $this->getLogDataRawQuery($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
             //     $logs = array_merge($logs, $newLogs);
             // }
+            $growth = $this->getGrowth();
+            dd($growth);
             $logs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
             
             $blocks = $this->getBlockMarks($request->contentNumber);
@@ -508,5 +510,18 @@ class GraphController extends Controller
     private function getBlockMarks($contentNumber)
     {
         return TblSchoolContentsBlock::where('school_contents_number', $contentNumber)->get();
+    }
+
+    private function getGrowth(){
+        try 
+            {
+                $data = DB::select('CALL sp_growth_over(?,?,?)',array(335,2,1));
+                return $data;
+
+            } catch (\Exception $e) {
+                return $e;
+            }
+
+        return $logs;
     }
 }
