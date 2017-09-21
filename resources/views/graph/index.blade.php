@@ -43,7 +43,7 @@
                     <label>
                         <input tabindex="1" type="checkbox" id="chkAll" /> All<br/>
                         @foreach ($ranks as $rank)
-                            <input tabindex="1" type="checkbox" name="rank" id="chkGroup" value="{{$rank->rank_number}}"> {{$rank->name}} <br>
+                            <input tabindex="1" type="checkbox" class="chkRank" name="rank" value="{{$rank->rank_number}}"> {{$rank->name}} <br>
                         @endforeach
                     </label>
                 </div>
@@ -53,9 +53,9 @@
                 <label>Growth</label>
                 <div class="form-group">
                     <label>
-                        <input tabindex="1" type="checkbox" id="chkOver" /> over 3 poins<br/>
-                        <input tabindex="1" type="checkbox" id="chkLittle" /> change little<br/>
-                        <input tabindex="1" type="checkbox" id="chkUnder" /> under 3 points<br/>
+                        <input name="growth"  type="radio" value="1" id="chkOver" /> Over 3<br/>
+                        <input name="growth"  type="radio" value="2" id="chkLittle" /> Change little<br/>
+                        <input name="growth"  type="radio" value="3" id="chkUnder" /> Under 3<br/>
                     </label>
                 </div>
             </div>
@@ -315,11 +315,20 @@
         var dateFrom = $("#txtFromDateInput").val();
         var dateTo = $("#txtToDateInput").val();
         var token = $("input[name='_token']").val();
+        var radios = document.getElementsByName('growth');
+
+        var growth;
+        for (var i = 0, length = radios.length; i < length; i++) {
+            if (radios[i].checked) {
+                growth = radios[i].value;
+                break;
+            }
+        }
 
         $.ajax({
             url: "{{ route('graphData') }}",
             method: 'POST',
-            data: {'test':test, 'subject':subject, 'contentNumber':contentNumber, 'rank':rank, 'dateFrom':dateFrom, 'dateTo':dateTo, _token:token},
+            data: {'test':test, 'subject':subject, 'contentNumber':contentNumber, 'rank':rank, 'dateFrom':dateFrom, 'dateTo':dateTo, 'growth':growth, _token:token},
             success: function (data) {
                 $('.overlay').hide();
 
@@ -511,17 +520,9 @@
     };  
 
     $('#chkAll').click(function(event) {
-        if(this.checked) {
-            // Iterate each checkbox
-            $(':checkbox').each(function() {
-                this.checked = true;
-            });
-        }
-        else {
-            $(':checkbox').each(function() {
-                this.checked = false;
-            });
-        }
+        $("input[name='rank']").each(function() {
+            this.checked = !this.checked;
+        });
     });
 
     $("[name='rank']").click(function(event) {

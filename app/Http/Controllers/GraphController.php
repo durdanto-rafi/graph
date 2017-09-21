@@ -8,6 +8,7 @@ use App\Models\MstDeviationValueRank;
 use App\Models\TblTrialTestName;
 use App\Models\LogSchoolContentsHistoryStudent;
 use App\Models\TblSchoolContentsBlock;
+use Exception;
 
 class GraphController extends Controller
 {
@@ -166,9 +167,9 @@ class GraphController extends Controller
             //     $newLogs = $this->getLogDataRawQuery($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank[$i], $request->subject);
             //     $logs = array_merge($logs, $newLogs);
             // }
-            $growth = $this->getGrowth();
-            dd($growth);
-            $logs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
+            $logs = $this->getGrowth($request->contentNumber, $request->subject, $request->rank, $request->growth);
+            //dd($growth);
+            //$logs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
             
             $blocks = $this->getBlockMarks($request->contentNumber);
             $this->processData($logs, $blocks);
@@ -512,16 +513,26 @@ class GraphController extends Controller
         return TblSchoolContentsBlock::where('school_contents_number', $contentNumber)->get();
     }
 
-    private function getGrowth(){
-        try 
-            {
-                $data = DB::select('CALL sp_growth_over(?,?,?)',array(335,2,1));
-                return $data;
-
-            } catch (\Exception $e) {
-                return $e;
+    private function getGrowth($content, $subject, $rank, $growth)
+    {
+        try
+        {
+            switch ($growth) {
+                case 1:
+                    $data = DB::select('CALL sp_growth_over(?,?,?)', array($content, $subject, implode(",",$rank)));
+                    break;
+                case 2:
+                    $data = DB::select('CALL sp_growth_little(?,?,?)', array($content, $subject, implode(",",$rank)));
+                    break;
+                case 3:
+                    $data = DB::select('CALL sp_growth_under(?,?,?)', array($content, $subject, implode(",",$rank)));
+                    break;
             }
-
-        return $logs;
+            return $data;
+        }
+        catch (Exception $e) 
+        {
+            return $e;
+        }
     }
 }
