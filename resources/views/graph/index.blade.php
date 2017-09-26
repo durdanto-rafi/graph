@@ -12,7 +12,7 @@
 {!! Form::open(array('id'=>'frmGraph')) !!}
     <div class="col-xs-12 col-sm-4 col-md-4">
         <div class="row">
-            <div class="col-xs-12 col-sm-4 col-md-4">
+            <div class="col-xs-12 col-sm-6 col-md-6">
                 <div class="form-group">
                     <label>Subject</label>
                     {!! Form::select('Subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
@@ -20,7 +20,7 @@
                 </div>
             </div>
 
-            <div class="col-xs-12 col-sm-4 col-md-4">
+            <div class="col-xs-12 col-sm-6 col-md-6">
                 <div class="form-group">
                     <label>Content</label>
                     {!! Form::select('Content', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
@@ -28,25 +28,21 @@
                 </div>
             </div>
 
-            <div class="col-xs-12 col-sm-4 col-md-4">
+            {{--  <div class="col-xs-12 col-sm-4 col-md-4">
                 <div class="form-group">
                     <label>Test</label>
                     {!! Form::select('Test', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
                     <!-- /.input group -->
                 </div>
-            </div>
+            </div>  --}}
         </div>
         <div class="row">
             <div class="col-xs-12 col-sm-4 col-md-4">
-                <label>Rank</label>
-                <div class="form-group">
-                    <label>
-                        <input tabindex="1" type="checkbox" id="chkAll" /> All<br/>
-                        @foreach ($ranks as $rank)
-                            <input tabindex="1" type="checkbox" class="chkRank" name="rank" value="{{$rank->rank_number}}"> {{$rank->name}} <br>
-                        @endforeach
-                    </label>
-                </div>
+                <label>Rank</label><br/>
+                <input type="checkbox" onClick="toggle(this)" id="chkAll" /> All<br/>
+                @foreach ($ranks as $rank)
+                    <input type="checkbox" class="chkRank" name="rank" value="{{$rank->rank_number}}"> {{$rank->name}} <br>
+                @endforeach
             </div>
 
             <div class="col-xs-12 col-sm-4 col-md-4">
@@ -297,9 +293,23 @@
                 rank.push(data.value);
             }
         });
+        
 
         if(rank.length < 1 ){
             error.push('Rank');   
+        }
+
+        var growth;
+        var radios = document.getElementsByName('growth');
+        for (var i = 0, length = radios.length; i < length; i++) {
+            if (radios[i].checked) {
+                growth = radios[i].value;
+                break;
+            }
+        }
+        
+        if(growth == undefined ){
+            error.push('Growth');   
         }
 
         if(error.length > 0){
@@ -309,21 +319,15 @@
 
         $('.overlay').show();
 
-        var test = $("#ddlTest").val();
+        var test = 0;
         var subject = $("#ddlSubject").val();
         var contentNumber = $("#ddlContentNumber").val();
         var dateFrom = $("#txtFromDateInput").val();
         var dateTo = $("#txtToDateInput").val();
         var token = $("input[name='_token']").val();
-        var radios = document.getElementsByName('growth');
+        
 
-        var growth;
-        for (var i = 0, length = radios.length; i < length; i++) {
-            if (radios[i].checked) {
-                growth = radios[i].value;
-                break;
-            }
-        }
+        
 
         $.ajax({
             url: "{{ route('graphData') }}",
@@ -402,8 +406,7 @@
                 window.viewDensityPerCountChart.update();
             },
             error: function(xhr, status, error) {
-                var err = eval("(" + xhr.responseText + ")");
-                swal("Sorry!", err.Message);
+                swal("Sorry!", JSON.parse(xhr.responseText));
             }
         });
     });
@@ -520,16 +523,26 @@
     };  
 
     $('#chkAll').click(function(event) {
-        $("input[name='rank']").each(function() {
-            this.checked = !this.checked;
-        });
+        toggle(this);
     });
 
-    $("[name='rank']").click(function(event) {
-        if($('#chkGroup').is(':checked'))
-        {
-            $('#chkAll').attr('checked', false);
+    function toggle(source) {
+        checkboxes = document.getElementsByName('rank');
+        for(var i=0, n=checkboxes.length;i<n;i++) {
+            checkboxes[i].checked = source.checked;
         }
+    }
+
+    function setRank(state){
+        $("input[name='rank']").each(function() {
+            if(this.checked){
+                this.checked = !state;
+            }
+        });
+    }
+
+    $("[name='rank']").click(function(event) {
+        $('#chkAll').attr('checked', false);
     });
 
 
