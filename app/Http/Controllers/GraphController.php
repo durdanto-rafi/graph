@@ -9,6 +9,13 @@ use App\Models\TblTrialTestName;
 use App\Models\LogSchoolContentsHistoryStudent;
 use App\Models\TblSchoolContentsBlock;
 use Exception;
+use Google\Cloud\Language\LanguageClient;
+
+# Includes the autoloader for libraries installed with composer
+use Vendor\autoload;
+
+# Imports the Google Cloud client library
+use Google\Cloud\Speech\SpeechClient;
 
 class GraphController extends Controller
 {
@@ -161,6 +168,9 @@ class GraphController extends Controller
     	if($request->ajax()){
             $logs = array();
             
+            $this->speechToText();
+            dd();
+
             // Multiple Rank
             // for($i=0; $i<count($request->rank); $i++)
             // {
@@ -533,6 +543,36 @@ class GraphController extends Controller
         catch (Exception $e) 
         {
             return $e;
+        }
+    }
+
+    private function speechToText()
+    {
+        # Your Google Cloud Platform project ID
+        $projectId = 'kjs-speech-api-1506584214035';
+        putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-be0e3f3e08c8.json'); //your path to file of cred
+
+        # Instantiates a client
+        $speech = new SpeechClient([
+            'projectId' => $projectId,
+            'languageCode' => 'ja-JP',
+        ]);
+
+        # The name of the audio file to transcribe
+        $fileName = __DIR__ . '/test.flac';
+
+        # The audio file's encoding and sample rate
+        $options = [
+            'encoding' => 'FLAC',
+            'sampleRateHertz' => 22050,
+        ];
+
+        # Detects speech in the audio file
+        $results = $speech->recognize(fopen($fileName, 'r'), $options);
+
+        foreach ($results[0]->alternatives() as $alternative) 
+        {
+            echo 'Transcription: ' . $alternative['transcript'] . PHP_EOL;
         }
     }
 }
