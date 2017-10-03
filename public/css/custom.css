@@ -117,6 +117,16 @@ canvas {
   height:100px !important;
 }
 
+#canAudio {
+  height:250px !important;
+}
+
+#overlay {
+  height:250px !important;
+  position:absolute;
+  pointer-events:none;
+}
+
 @font-face {
   font-family: 'MyWebFont';
   src: url('webfont.eot'); /* IE9 Compat Modes */

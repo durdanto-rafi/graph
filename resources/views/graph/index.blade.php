@@ -180,6 +180,7 @@
                 <ul class="nav nav-tabs">
                     <li class="active"><a href="#density" data-toggle="tab">View Density</a></li>
                     <li><a href="#password" data-toggle="tab">EVent Density / Event Count * 100</a></li>
+                    <li><a href="#audio" data-toggle="tab">Audio</a></li>
                 </ul>
                 <div class="tab-content">
                     <div class="active tab-pane" id="density">
@@ -187,7 +188,6 @@
                             <canvas id="canViewDensity" ></canvas>
                             <div class="text-center">
                                 <button id="btnResetZoomViewDensity" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
-                                <button id="btnTranscribe" class="btn btn-primary btn-xs" onclick="return false;" > Transcribe </button>
                             </div>
                         </div>
                     </div>
@@ -197,6 +197,16 @@
                             <canvas id="canViewDensityPerCount" ></canvas>
                             <div class="text-center">
                                 <button id="btnResetZoomDensityPerView" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.tab-pane -->
+                    <div class="active tab-pane" id="audio">
+                        <div class="chart">
+                            <canvas id="overlay" ></canvas>    
+                            <canvas id="canAudio" ></canvas>
+                            <div class="text-center">
+                                <button id="btnTranscribe" class="btn btn-primary btn-xs" onclick="return false;" > Transcribe </button>
                             </div>
                         </div>
                     </div>
@@ -423,6 +433,18 @@
                     }
                 });
                 window.viewDensityPerCountChart.update();
+
+                // Updating audio data to chart
+                audioGraphData.labels = data.contentInfo.duration;
+                audioGraphData.datasets.forEach(function (dataset) {
+                    if(dataset.label == 'Blocks'){
+                        dataset.data = data.contentInfo.blocksForViewDensity;
+                    }
+                    if(dataset.label == 'View Density'){
+                        dataset.data = data.contentInfo.indexedViewCount;
+                    }
+                });
+                window.audioChart.update();
             },
             error: function(xhr, status, error) {
                 swal("Sorry!", JSON.parse(xhr.responseText));
@@ -537,6 +559,90 @@
                     mode: 'y',
                 }
             }
+        });
+
+
+        var options = {
+            type: 'bar',
+            data: audioGraphData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                pan: {
+                    enabled: true,
+                    mode: 'y',
+                },
+                zoom: {
+                    enabled: true,                      
+                    mode: 'y',
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            reverse: false
+                        }
+                    }]
+                }
+            }
+        }
+
+        //Audio chart initialization
+        var canvas = document.getElementById('canAudio');
+        var ctxAudio = canvas.getContext("2d");
+        window.audioChart = new Chart(ctxAudio, options);
+
+        // Different Canvas
+        var overlay = document.getElementById('overlay');
+        var startIndex = 0;
+        overlay.width = canvas.width;
+        overlay.height = canvas.height;
+        var selectionContext = overlay.getContext('2d');
+        var selectionRect = {
+            w: 0,
+            startX: 0,
+            startY: 0
+        };
+        var drag = false;
+        canvas.addEventListener('pointerdown', evt => {
+            const points = window.audioChart.getElementsAtEventForMode(evt, 'index', {
+                intersect: false
+            });
+            startIndex = points[0]._index;
+            const rect = canvas.getBoundingClientRect();
+            selectionRect.startX = evt.clientX - rect.left;
+            selectionRect.startY = window.audioChart.chartArea.top;
+            drag = true;
+            // save points[0]._index for filtering
+        });
+        canvas.addEventListener('pointermove', evt => {
+
+            const rect = canvas.getBoundingClientRect();
+            if (drag) {
+                const rect = canvas.getBoundingClientRect();
+                selectionRect.w = (evt.clientX - rect.left) - selectionRect.startX;
+                selectionContext.globalAlpha = 0.5;
+                selectionContext.clearRect(0, 0, canvas.width, canvas.height);
+                selectionContext.fillRect(selectionRect.startX,
+                    selectionRect.startY,
+                    selectionRect.w,
+                    window.audioChart.chartArea.bottom - window.audioChart.chartArea.top);
+            } else {
+                selectionContext.clearRect(0, 0, canvas.width, canvas.height);
+                var x = evt.clientX - rect.left;
+                if (x > window.audioChart.chartArea.left) {
+                    selectionContext.fillRect(x,
+                        window.audioChart.chartArea.top,
+                        1,
+                        window.audioChart.chartArea.bottom - window.audioChart.chartArea.top);
+                }
+            }
+        });
+        canvas.addEventListener('pointerup', evt => {
+            const points = window.audioChart.getElementsAtEventForMode(evt, 'index', {
+                intersect: false
+            });
+            drag = false;
+            console.log('implement filter between ' + options.data.labels[startIndex] + ' and ' + options.data.labels[points[0]._index]);
         });
 
     };  
@@ -677,6 +783,28 @@
     $('#btnResetZoomDensityPerView').click(function () {
         window.viewDensityPerCountChart.resetZoom();
     });
+
+    // View Density 
+    var audioGraphData = {
+        labels: [],
+        datasets: [{
+            type: 'line',
+            label: 'View Density',
+            borderColor: window.chartColors.sky,
+            borderWidth: 2,
+            fill: true,
+            data: [],
+            pointRadius: 0,
+            pointHoverBackgroundColor: 'red'
+        }, {
+            type: 'bar',
+            label: 'Blocks',
+            borderColor: window.chartColors.purple,
+            backgroundColor: window.chartColors.purple,
+            data: [],
+            borderWidth: 2
+        }]
+    };
 
     $('#btnTranscribe').click(function () {
         $('.overlay').show();
