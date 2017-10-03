@@ -187,6 +187,7 @@
                             <canvas id="canViewDensity" ></canvas>
                             <div class="text-center">
                                 <button id="btnResetZoomViewDensity" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
+                                <button id="btnTranscribe" class="btn btn-primary btn-xs" onclick="return false;" > Transcribe </button>
                             </div>
                         </div>
                     </div>
@@ -234,6 +235,27 @@
     <div class="overlay">
         <i class="fa fa-refresh fa-spin"></i>
     </div>
+
+    <div class="modal fade" id="modalTranscribe">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Transcribed audio with AI</h4>
+            </div>
+            <div class="modal-body">
+                <p id='transcribedData'></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
 {!! Form::close() !!}
 
 @endsection 
@@ -326,9 +348,6 @@
         var dateTo = $("#txtToDateInput").val();
         var token = $("input[name='_token']").val();
         
-
-        
-
         $.ajax({
             url: "{{ route('graphData') }}",
             method: 'POST',
@@ -657,6 +676,21 @@
 
     $('#btnResetZoomDensityPerView').click(function () {
         window.viewDensityPerCountChart.resetZoom();
+    });
+
+    $('#btnTranscribe').click(function () {
+        $('.overlay').show();
+        var token = $("input[name='_token']").val();
+        $.ajax({
+            url: "{{ route('transcribe') }}",
+            method: 'POST',
+            data: {_token:token},
+            success: function(data) {
+                $('.overlay').hide();
+                $('#transcribedData').html(data.transcribedData.join("。"));
+                $('#modalTranscribe').modal('show');
+            }
+        });
     });
 
 </script>

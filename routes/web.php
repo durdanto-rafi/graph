@@ -18,3 +18,4 @@ Route::post('subjectContents', ['as'=>'subjectContents','uses'=>'GraphController
 
 Route::resource('login','LoginController');
 Route::get('logout', ['as'=>'logout','uses'=>'LoginController@logout']);
+Route::post('transcribe', ['as'=>'transcribe','uses'=>'GraphController@getTranscribe']);

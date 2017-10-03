@@ -10,6 +10,7 @@ use App\Models\LogSchoolContentsHistoryStudent;
 use App\Models\TblSchoolContentsBlock;
 use Exception;
 use Google\Cloud\Language\LanguageClient;
+use FFMpeg;
 
 # Includes the autoloader for libraries installed with composer
 use Vendor\autoload;
@@ -167,9 +168,6 @@ class GraphController extends Controller
     public function getGraphData(Request $request){
     	if($request->ajax()){
             $logs = array();
-            
-            $this->speechToText();
-            dd();
 
             // Multiple Rank
             // for($i=0; $i<count($request->rank); $i++)
@@ -546,7 +544,7 @@ class GraphController extends Controller
         }
     }
 
-    private function speechToText()
+    public function getTranscribe()
     {
         # Your Google Cloud Platform project ID
         $projectId = 'kjs-speech-api-1506584214035';
@@ -570,9 +568,35 @@ class GraphController extends Controller
         # Detects speech in the audio file
         $results = $speech->recognize(fopen($fileName, 'r'), $options);
 
-        foreach ($results[0]->alternatives() as $alternative) 
+        $transcribedData = array();
+        foreach ($results as $key => $value) 
         {
-            echo 'Transcription: ' . $alternative['transcript'] . PHP_EOL;
+            array_push($transcribedData, $value->alternatives()[0]['transcript']);
         }
+
+        return response()->json(['transcribedData'=> $transcribedData]);
+    }
+
+    private function convertToFlac()
+    {
+        $ffmpeg = FFMpeg\FFMpeg::create([
+            'ffmpeg.binaries'  => '/root/bin/ffmpeg',
+            'ffprobe.binaries' => '/root/bin/ffmpeg',
+            'timeout'          => 3600, // the timeout for the underlying process
+            'ffmpeg.threads'   => 1,   // the number of threads that FFMpeg should use
+        ]);
+        
+        $audio = $ffmpeg->open('track.mp3');
+        
+        $format = new FFMpeg\Format\Audio\Flac();
+        $format->on('progress', function ($audio, $format, $percentage) {
+            echo "$percentage % transcoded";
+        });
+        
+        $format
+            ->setAudioChannels(1)
+            ->setAudioKiloBitrate(16);
+        
+        $audio->save($format, 'track.flac');
     }
 }
