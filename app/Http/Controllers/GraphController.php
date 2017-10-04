@@ -17,6 +17,8 @@ use Vendor\autoload;
 
 # Imports the Google Cloud client library
 use Google\Cloud\Speech\SpeechClient;
+use Google\Cloud\Storage\StorageClient;
+use Google\Cloud\Core\ExponentialBackoff;
 
 class GraphController extends Controller
 {
@@ -544,7 +546,7 @@ class GraphController extends Controller
         }
     }
 
-    public function getTranscribe()
+    public function getTranscribeSync()
     {
         # Your Google Cloud Platform project ID
         $projectId = 'kjs-speech-api-1506584214035';
@@ -598,5 +600,77 @@ class GraphController extends Controller
             ->setAudioKiloBitrate(16);
         
         $audio->save($format, 'track.flac');
+    }
+
+    /**
+    * Transcribe an audio file using Google Cloud Speech API
+    * Example:
+    * ```
+    * transcribe_async_gcs('your-bucket-name', 'audiofile.wav');
+    * ```.
+    *
+    * @param string $bucketName The Cloud Storage bucket name.
+    * @param string $objectName The Cloud Storage object name.
+    * @param string $languageCode The Cloud Storage
+    *     be recognized. Accepts BCP-47 (e.g., `"en-US"`, `"es-ES"`).
+    * @param array $options configuration options.
+    *
+    * @return string the text transcription
+    */
+    function getTranscribe()
+    {
+        # Your Google Cloud Platform project ID
+        $projectId = 'kjs-speech-api-1506584214035';
+        putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-be0e3f3e08c8.json'); //your path to file of cred
+
+        # Instantiates a client
+        $speech = new SpeechClient([
+            'projectId' => $projectId,
+            'languageCode' => 'ja-JP',
+            "enableWordTimeOffsets" =>  true
+        ]);
+
+        # The audio file's encoding and sample rate
+        $options = [
+            'encoding' => 'FLAC',
+            'sampleRateHertz' => 22050,
+        ];
+
+        // Fetch the storage object
+        $storage = new StorageClient();
+        $object = $storage->bucket('kjs-lms')->object('test-6.flac');
+
+        // Create the asyncronous recognize operation
+        $operation = $speech->beginRecognizeOperation(
+            $object,
+            $options
+        );
+
+        // Wait for the operation to complete
+        $backoff = new ExponentialBackoff(10);
+        $backoff->execute(function () use ($operation) {
+            print('Waiting for operation to complete' . PHP_EOL);
+            $operation->reload();
+            if (!$operation->isComplete()) {
+                throw new Exception('Job has not yet completed', 500);
+            }
+        });
+
+        // Print the results
+        if ($operation->isComplete()) {
+            $results = $operation->results();
+
+            $transcribedData = array();
+            foreach ($results as $key => $value) 
+            {
+                array_push($transcribedData, $value->alternatives()[0]['transcript']);
+            }
+            dd($transcribedData);
+            foreach ($results as $result) {
+                $alternative = $result->alternatives()[0];
+                printf('Transcript: %s' . PHP_EOL, $alternative['transcript']);
+                printf('Confidence: %s' . PHP_EOL, $alternative['confidence']);
+            }
+        }
     }
 }
