@@ -207,6 +207,7 @@
                             <canvas id="canAudio" ></canvas>
                             <div class="text-center">
                                 <button id="btnTranscribe" class="btn btn-primary btn-xs" onclick="return false;" > Transcribe </button>
+                                <button id="btnConvert" class="btn btn-primary btn-xs" onclick="return false;" > Convert </button>
                             </div>
                         </div>
                     </div>
@@ -817,6 +818,20 @@
                 $('.overlay').hide();
                 $('#transcribedData').html(data.transcribedData.join("。"));
                 $('#modalTranscribe').modal('show');
+            }
+        });
+    });
+
+    $('#btnConvert').click(function () {
+        $('.overlay').show();
+        var token = $("input[name='_token']").val();
+        $.ajax({
+            url: "{{ route('convert') }}",
+            method: 'POST',
+            data: {_token:token},
+            success: function(data) 
+            {
+                swal("Success !", "Tb content converted to FLAC audio", "success");
             }
         });
     });
