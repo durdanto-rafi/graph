@@ -20,6 +20,11 @@ use Google\Cloud\Speech\SpeechClient;
 use Google\Cloud\Storage\StorageClient;
 use Google\Cloud\Core\ExponentialBackoff;
 
+use App\Libraries\Tb\TbEntry;
+use App\Libraries\Tb\TbMap;
+use App\Libraries\Tb\Tb;
+use App\Libraries\Tb\Tools;
+
 class GraphController extends Controller
 {
     public $contentInfo = array("eventCount" => 0, 
@@ -671,6 +676,17 @@ class GraphController extends Controller
                 printf('Transcript: %s' . PHP_EOL, $alternative['transcript']);
                 printf('Confidence: %s' . PHP_EOL, $alternative['confidence']);
             }
+        }
+    }
+
+    function convertToAudio()
+    {
+        $file = file_get_contents(__DIR__.'/224.TBO-LN');
+        $tb = new Tb();
+        $play_data = $tb->setBinary($file)->getPlayData();
+        foreach ($play_data['blocks'] as $key => $value) 
+        {
+            file_put_contents(__DIR__.'sound.flac', $value['audio']);
         }
     }
 }
