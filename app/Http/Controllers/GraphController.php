@@ -643,7 +643,7 @@ class GraphController extends Controller
 
         // Fetch the storage object
         $storage = new StorageClient();
-        $object = $storage->bucket('kjs-lms')->object('test-6.flac');
+        $object = $storage->bucket('kjs-lms')->object('testing.flac');
 
         // Create the asyncronous recognize operation
         $operation = $speech->beginRecognizeOperation(
@@ -684,9 +684,6 @@ class GraphController extends Controller
         $file = file_get_contents(__DIR__.'/224.TBO-LN');
         $tb = new Tb();
         $play_data = $tb->setBinary($file)->getPlayData();
-        foreach ($play_data['blocks'] as $key => $value) 
-        {
-            file_put_contents(__DIR__.'sound.flac', $value['audio']);
-        }
+        file_put_contents('testing.flac', $play_data['blocks'][1]['audio']);
     }
 }
