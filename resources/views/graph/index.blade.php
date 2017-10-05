@@ -831,7 +831,8 @@
             data: {_token:token},
             success: function(data) 
             {
-                swal("Success !", "Tb content converted to FLAC audio", "success");
+                $('.overlay').hide();
+                swal("Success !", "TB content converted to FLAC audio", "success");
             }
         });
     });

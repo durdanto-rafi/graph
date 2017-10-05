@@ -24,6 +24,7 @@ use App\Libraries\Tb\TbEntry;
 use App\Libraries\Tb\TbMap;
 use App\Libraries\Tb\Tb;
 use App\Libraries\Tb\Tools;
+use App\Libraries\Tb\Mp3;
 
 class GraphController extends Controller
 {
@@ -55,7 +56,7 @@ class GraphController extends Controller
     public function index(Request $request)
     {
         //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
-
+        $this->convertToAudio();
         $user = $request->session()->get('user');
         if($user != null)
         {
@@ -631,19 +632,19 @@ class GraphController extends Controller
         # Instantiates a client
         $speech = new SpeechClient([
             'projectId' => $projectId,
-            'languageCode' => 'ja-JP',
-            "enableWordTimeOffsets" =>  true
+            'languageCode' => 'ja-JP'
         ]);
 
         # The audio file's encoding and sample rate
         $options = [
             'encoding' => 'FLAC',
             'sampleRateHertz' => 22050,
+            'enableWordTimeOffsets' => true,
         ];
 
         // Fetch the storage object
         $storage = new StorageClient();
-        $object = $storage->bucket('kjs-lms')->object('testing.flac');
+        $object = $storage->bucket('kjs-lms')->object('2.flac');
 
         // Create the asyncronous recognize operation
         $operation = $speech->beginRecognizeOperation(
@@ -670,7 +671,7 @@ class GraphController extends Controller
             {
                 array_push($transcribedData, $value->alternatives()[0]['transcript']);
             }
-            dd($transcribedData);
+            dd($results);
             foreach ($results as $result) {
                 $alternative = $result->alternatives()[0];
                 printf('Transcript: %s' . PHP_EOL, $alternative['transcript']);
@@ -681,9 +682,40 @@ class GraphController extends Controller
 
     function convertToAudio()
     {
-        $file = file_get_contents(__DIR__.'/224.TBO-LN');
-        $tb = new Tb();
-        $play_data = $tb->setBinary($file)->getPlayData();
-        file_put_contents('testing.flac', $play_data['blocks'][1]['audio']);
+        // $file = file_get_contents(__DIR__.'/224.TBO-LN');
+        // $tb = new Tb();
+        // $play_data = $tb->setBinary($file)->getPlayData();
+        // for ($i=0; $i < count($play_data['blocks']); $i++) 
+        // {
+        //     file_put_contents($i.'.mp3', $play_data['blocks'][$i]['audio']);
+        // }
+        //file_put_contents('testing.flac', $play_data['blocks'][1]['audio']);
+
+         // Specify the word 
+        $petersword = "01234";
+        $word_count = strlen($petersword);
+    
+        // Set up the first file
+        if ($word_count > 0) 
+        {
+            $mp3 = new Mp3(__DIR__.'/soudnds'.substr($petersword, 0, 1) . '.mp3');
+            $mp3->striptags();
+        }
+
+        dd($mp3);
+    
+        // Generate the mp3 file from each letter in the word 
+        for ($i = 1; $i < $word_count; ++$i) 
+        {
+            //echo $i;
+            $cas_character = __DIR__.'/sounds'.substr($petersword, $i, 1);
+            $cas_mp3equivalent = new Mp3($cas_character . '.mp3');
+            //dd($cas_mp3equivalent);
+            $mp3->mergeBehind($cas_mp3equivalent);
+            $mp3->striptags();
+        }
+        
+        // Spit out the audio file!  
+        $mp3->output('word.mp3');
     }
 }
