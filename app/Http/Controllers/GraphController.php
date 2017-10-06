@@ -26,6 +26,9 @@ use App\Libraries\Tb\Tb;
 use App\Libraries\Tb\Tools;
 use App\Libraries\Tb\Mp3;
 
+use App\Models\ApiSpeechTranscript;
+use App\Models\ApiSpeechWord;
+
 class GraphController extends Controller
 {
     public $contentInfo = array("eventCount" => 0, 
@@ -56,7 +59,7 @@ class GraphController extends Controller
     public function index(Request $request)
     {
         //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
-        $this->convertToAudio();
+        //$this->convertToAudio();
         $user = $request->session()->get('user');
         if($user != null)
         {
@@ -643,8 +646,9 @@ class GraphController extends Controller
         ];
 
         // Fetch the storage object
+        $fileName = '224';
         $storage = new StorageClient();
-        $object = $storage->bucket('kjs-lms')->object('2.flac');
+        $object = $storage->bucket('kjs-lms')->object($fileName.'.flac');
 
         // Create the asyncronous recognize operation
         $operation = $speech->beginRecognizeOperation(
@@ -667,15 +671,29 @@ class GraphController extends Controller
             $results = $operation->results();
 
             $transcribedData = array();
-            foreach ($results as $key => $value) 
+            //dd($results);
+            foreach ($results as $result) 
             {
-                array_push($transcribedData, $value->alternatives()[0]['transcript']);
-            }
-            dd($results);
-            foreach ($results as $result) {
                 $alternative = $result->alternatives()[0];
-                printf('Transcript: %s' . PHP_EOL, $alternative['transcript']);
-                printf('Confidence: %s' . PHP_EOL, $alternative['confidence']);
+
+                $apiSpeechTranscript = new ApiSpeechTranscript;
+                $apiSpeechTranscript->student_content_number = $fileName;
+                $apiSpeechTranscript->transcript = $alternative['transcript'];
+                $apiSpeechTranscript->confidence = $alternative['confidence'];
+                $apiSpeechTranscript->save();
+                $insertedId = $apiSpeechTranscript->transcript_number;
+
+                foreach ($alternative['words'] as $words) 
+                {
+                    $apiSpeechWord = new ApiSpeechWord;
+                    $apiSpeechWord->student_content_number = $fileName;
+                    $apiSpeechWord->start_time = rtrim($words['startTime'], "s");
+                    $apiSpeechWord->end_time = rtrim($words['endTime'], "s"); 
+                    $apiSpeechWord->word_kanji = explode("|", $words['word'])[0];
+                    $apiSpeechWord->word_katakana = explode("|", $words['word'])[1];
+                    $apiSpeechWord->transcript_number = $insertedId;
+                    $apiSpeechWord->save();
+                }
             }
         }
     }
