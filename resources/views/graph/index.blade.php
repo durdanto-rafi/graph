@@ -252,8 +252,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Transcribed audio with AI</h4>
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="modalHeader" class="modal-title  text-center"></h4>
             </div>
             <div class="modal-body">
                 <p id='transcribedData'></p>
@@ -643,7 +644,21 @@
                 intersect: false
             });
             drag = false;
-            console.log('implement filter between ' + options.data.labels[startIndex] + ' and ' + options.data.labels[points[0]._index]);
+            //console.log('implement filter between ' + options.data.labels[startIndex] + ' and ' + options.data.labels[points[0]._index]);
+            var token = $("input[name='_token']").val();
+            var contentNumber = $("#ddlContentNumber").val();
+            $.ajax({
+                url: "{{ route('speech-to-text') }}",
+                method: 'POST',
+                data: { 'startTime':options.data.labels[startIndex], 'endTime':options.data.labels[points[0]._index], 'contentNumber':contentNumber,  _token:token},
+                success: function(data) 
+                {
+                    $('.overlay').hide();
+                    $('#modalHeader').html("Transcribed audio with Google AI (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
+                    $('#transcribedData').html(data.katakana.join(" "));
+                    $('#modalTranscribe').modal('show');
+                }
+            });
         });
 
     };  

@@ -736,4 +736,39 @@ class GraphController extends Controller
         // Spit out the audio file!  
         $mp3->output('word.mp3');
     }
+
+    function speechToText(Request $request)
+    {
+        if($request->ajax())
+        {
+            $startTime = $this->convertToSecond($request->startTime);
+            $endTime = $this->convertToSecond($request->endTime);
+
+            $kanji = array();
+            $katakana = array();
+            if($startTime > $endTime)
+            {
+                //list($startTime, $endTime) = array($startTime, $endTime);
+
+                $startTime =  $startTime + $endTime;  // 5 + 6 = 11
+                $endTime = $startTime - $endTime;   // 11 - 6 = 5
+                $startTime = $startTime - $endTime;
+            }
+
+            $apiSpeechWords = ApiSpeechWord::where('start_time', '>=', $startTime)->where('start_time', '<=', $endTime)->where('student_content_number', $request->contentNumber)->get();
+            foreach ($apiSpeechWords as $apiSpeechWord) 
+            {
+                array_push($kanji, $apiSpeechWord->word_kanji);
+                array_push($katakana, $apiSpeechWord->word_katakana);
+            }
+
+            return response()->json(['kanji'=> $kanji, 'katakana'=> $katakana]);
+        }
+    }
+
+    function convertToSecond($minuteSecond)
+    {
+        sscanf($minuteSecond, "%d:%d:%d", $hours, $minutes, $seconds);
+        return isset($seconds) ? $hours * 3600 + $minutes * 60 + $seconds : $hours * 60 + $minutes;
+    }
 }

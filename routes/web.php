@@ -20,3 +20,4 @@ Route::resource('login','LoginController');
 Route::get('logout', ['as'=>'logout','uses'=>'LoginController@logout']);
 Route::post('transcribe', ['as'=>'transcribe','uses'=>'GraphController@getTranscribe']);
 Route::post('convert', ['as'=>'convert','uses'=>'GraphController@convertToAudio']);
+Route::post('speech-to-text', ['as'=>'speech-to-text','uses'=>'GraphController@speechToText']);
