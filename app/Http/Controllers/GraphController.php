@@ -29,6 +29,10 @@ use App\Libraries\Tb\Mp3;
 use App\Models\ApiSpeechTranscript;
 use App\Models\ApiSpeechWord;
 
+use File;
+
+use App\Libraries\Audio\ConcatAudioFilter;
+
 class GraphController extends Controller
 {
     public $contentInfo = array("eventCount" => 0, 
@@ -626,11 +630,11 @@ class GraphController extends Controller
     *
     * @return string the text transcription
     */
-    function getTranscribe()
+    function getTranscribe(Request $request)
     {
         # Your Google Cloud Platform project ID
         $projectId = 'kjs-speech-api-1506584214035';
-        putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-be0e3f3e08c8.json'); //your path to file of cred
+        putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-0829ca3f94ba.json'); //your path to file of cred
 
         # Instantiates a client
         $speech = new SpeechClient([
@@ -646,7 +650,7 @@ class GraphController extends Controller
         ];
 
         // Fetch the storage object
-        $fileName = '224';
+        $fileName = $request->contentNumber;
         $storage = new StorageClient();
         $object = $storage->bucket('kjs-lms')->object($fileName.'.flac');
 
@@ -685,12 +689,23 @@ class GraphController extends Controller
 
                 foreach ($alternative['words'] as $words) 
                 {
+                    $kanji = ''; 
+                    $katakana = '';
+                    if (strpos($words['word'], '|') !== false) 
+                    {
+                        $kanji = explode("|", $words['word'])[0];
+                        $katakana = explode("|", $words['word'])[1];
+                    }
+                    else
+                    {
+                        $kanji = $words['word'];
+                    }
                     $apiSpeechWord = new ApiSpeechWord;
                     $apiSpeechWord->student_content_number = $fileName;
                     $apiSpeechWord->start_time = rtrim($words['startTime'], "s");
                     $apiSpeechWord->end_time = rtrim($words['endTime'], "s"); 
-                    $apiSpeechWord->word_kanji = explode("|", $words['word'])[0];
-                    $apiSpeechWord->word_katakana = explode("|", $words['word'])[1];
+                    $apiSpeechWord->word_kanji = $kanji;
+                    $apiSpeechWord->word_katakana = $katakana;
                     $apiSpeechWord->transcript_number = $insertedId;
                     $apiSpeechWord->save();
                 }
@@ -698,43 +713,56 @@ class GraphController extends Controller
         }
     }
 
-    function convertToAudio()
+    function convertToAudio(Request $request)
     {
-        // $file = file_get_contents(__DIR__.'/224.TBO-LN');
-        // $tb = new Tb();
-        // $play_data = $tb->setBinary($file)->getPlayData();
-        // for ($i=0; $i < count($play_data['blocks']); $i++) 
-        // {
-        //     file_put_contents($i.'.mp3', $play_data['blocks'][$i]['audio']);
-        // }
-        //file_put_contents('testing.flac', $play_data['blocks'][1]['audio']);
-
-         // Specify the word 
-        $petersword = "01234";
-        $word_count = strlen($petersword);
-    
-        // Set up the first file
-        if ($word_count > 0) 
+        $message = 'error';
+        // Reading Tb content
+        try 
         {
-            $mp3 = new Mp3(__DIR__.'/soudnds'.substr($petersword, 0, 1) . '.mp3');
-            $mp3->striptags();
+            $fileTypes = array("TBO-LN", "TBON");
+            $file = null;
+            foreach ($fileTypes as $fileType) 
+            {
+                if (File::exists(storage_path('app/contents/'.$request->contentNumber.'.'.$fileType)))
+                {
+                    $file = File::get(storage_path('app/contents/'.$request->contentNumber.'.'.$fileType));
+                    break;
+                }
+            }
+    
+            if($file != null)
+            {
+                // Checking for directory existance
+                if (!File::exists(storage_path('app/sounds/'.$request->contentNumber))) 
+                {
+                    mkdir(storage_path('app/sounds/'.$request->contentNumber), 0777, true);
+                }
+                
+                // Writing MP3 
+                $tb = new Tb();
+                $play_data = $tb->setBinary($file)->getPlayData();
+                for ($i=0; $i < count($play_data['blocks']); $i++) 
+                {
+                    header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
+                    header('Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . ' GMT');
+                    header('Cache-Control: no-store, no-cache, must-revalidate');
+                    header('Cache-Control: post-check=0, pre-check=0', false);
+                    header('Pragma: no-cache'); 
+                    header("Content-Type: audio/mpeg");
+                    header("Content-Length: " . strlen($play_data['blocks'][$i]['audio']));
+                    header('Content-Disposition: attachment; filename="'.$i.'.mp3"');
+                    File::put(storage_path('app/sounds/'.$request->contentNumber.'/'.$i.'.mp3'), $play_data['blocks'][$i]['audio']);
+                }
+    
+                $message = 'success';
+            }
+        } 
+        catch (\Exception $e) 
+        {
+            $message =  $e->getMessage();
         }
 
-        dd($mp3);
-    
-        // Generate the mp3 file from each letter in the word 
-        for ($i = 1; $i < $word_count; ++$i) 
-        {
-            //echo $i;
-            $cas_character = __DIR__.'/sounds'.substr($petersword, $i, 1);
-            $cas_mp3equivalent = new Mp3($cas_character . '.mp3');
-            //dd($cas_mp3equivalent);
-            $mp3->mergeBehind($cas_mp3equivalent);
-            $mp3->striptags();
-        }
-        
-        // Spit out the audio file!  
-        $mp3->output('word.mp3');
+        return response()->json(['message'=> $message]);
     }
 
     function speechToText(Request $request)

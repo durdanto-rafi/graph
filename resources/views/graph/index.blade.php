@@ -178,12 +178,12 @@
             <!-- LINE CHART -->
             <div class="nav-tabs-custom">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a href="#density" data-toggle="tab">View Density</a></li>
+                    <li><a href="#density" data-toggle="tab">View Density</a></li>
                     <li><a href="#password" data-toggle="tab">EVent Density / Event Count * 100</a></li>
-                    <li><a href="#audio" data-toggle="tab">Audio</a></li>
+                    <li  class="active"><a href="#audio" data-toggle="tab">Audio</a></li>
                 </ul>
                 <div class="tab-content">
-                    <div class="active tab-pane" id="density">
+                    <div class="tab-pane" id="density">
                         <div class="chart">
                             <canvas id="canViewDensity" ></canvas>
                             <div class="text-center">
@@ -655,7 +655,7 @@
                 {
                     $('.overlay').hide();
                     $('#modalHeader').html("Transcribed audio with Google AI (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
-                    $('#transcribedData').html(data.katakana.join(" "));
+                    $('#transcribedData').html(data.kanji.join(""));
                     $('#modalTranscribe').modal('show');
                 }
             });
@@ -825,10 +825,31 @@
     $('#btnTranscribe').click(function () {
         $('.overlay').show();
         var token = $("input[name='_token']").val();
+        var contentNumber = $("#ddlContentNumber").val();
         $.ajax({
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                //Upload progress
+                xhr.upload.addEventListener("progress", function (evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = evt.loaded / evt.total;
+                        //Do something with upload progress
+                        console.log('percent uploaded: ' + (percentComplete * 100));
+                    }
+                }, false);
+                //Download progress
+                xhr.addEventListener("progress", function (evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = evt.loaded / evt.total;
+                        //Do something with download progress
+                        console.log('percent downloaded: ' + (percentComplete * 100));
+                    }
+                }, false);
+                return xhr;
+            },
             url: "{{ route('transcribe') }}",
             method: 'POST',
-            data: {_token:token},
+            data: {_token:token, contentNumber:contentNumber},
             success: function(data) {
                 $('.overlay').hide();
                 $('#transcribedData').html(data.transcribedData.join("。"));
@@ -840,14 +861,22 @@
     $('#btnConvert').click(function () {
         $('.overlay').show();
         var token = $("input[name='_token']").val();
+        var contentNumber = $("#ddlContentNumber").val();
         $.ajax({
             url: "{{ route('convert') }}",
             method: 'POST',
-            data: {_token:token},
+            data: {_token:token, contentNumber:contentNumber},
             success: function(data) 
             {
                 $('.overlay').hide();
-                swal("Success !", "TB content converted to FLAC audio", "success");
+                if(data.message == 'success')
+                {
+                    swal("Success !", "TB content converted to MP3 audio", "success");
+                }
+                else
+                {
+                    swal("Error !", "TB content not found !", "warning");
+                }
             }
         });
     });
