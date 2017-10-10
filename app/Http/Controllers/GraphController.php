@@ -729,6 +729,7 @@ class GraphController extends Controller
                     break;
                 }
             }
+             
     
             if($file != null)
             {
@@ -753,9 +754,27 @@ class GraphController extends Controller
                     header('Content-Disposition: attachment; filename="'.$i.'.mp3"');
                     File::put(storage_path('app/sounds/'.$request->contentNumber.'/'.$i.'.mp3'), $play_data['blocks'][$i]['audio']);
                 }
+
+                $dirFiles = scandir(storage_path('app/sounds/'.$request->contentNumber));
+                if(count($dirFiles) > 0)
+                {
+                    $mp3 = new Mp3(storage_path('app/sounds/') . $dirFiles[0]);
+                    $mp3->striptags();
+                }
+
+                foreach ($dirFiles as $dirFile) 
+                {
+                    $cas_character = storage_path('app/sounds/') . $dirFile;
+                    $cas_mp3equivalent = new Mp3($cas_character);
+                    $mp3->mergeBehind($cas_mp3equivalent);
+                    $mp3->striptags();
+                }
+
+                $mp3->output('word.mp3');
     
                 $message = 'success';
             }
+            
         } 
         catch (\Exception $e) 
         {
