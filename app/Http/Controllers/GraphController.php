@@ -66,7 +66,7 @@ class GraphController extends Controller
     public function index(Request $request)
     {
         //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
-        //$this->convertToAudio();
+        //$this->upload_object();
         $user = $request->session()->get('user');
         if($user != null)
         {
@@ -661,7 +661,7 @@ class GraphController extends Controller
         );
 
         // Wait for the operation to complete
-        $backoff = new ExponentialBackoff(10);
+        $backoff = new ExponentialBackoff(100);
         $backoff->execute(function () use ($operation) {
             print('Waiting for operation to complete' . PHP_EOL);
             $operation->reload();
@@ -715,8 +715,6 @@ class GraphController extends Controller
 
     function convertToAudio(Request $request)
     {
-        //$this->concatAudio();
-
         $message = 'error';
         // Reading Tb content
         try 
@@ -771,7 +769,7 @@ class GraphController extends Controller
             
                     $format = new FFMpeg\Format\Audio\Flac();
                     $format->on('progress', function ($audio, $format, $percentage) {
-                        echo "$percentage % transcoded";
+                        //echo "$percentage % transcoded";
                     });
                     
                     $format
@@ -782,6 +780,9 @@ class GraphController extends Controller
 
                     $folderPath = storage_path('app/sounds/'.$request->contentNumber);
                     $this->rmdir_recursive($folderPath);
+
+                    $this->uploadObject($request->contentNumber.'.flac', storage_path('app/sounds/'.$request->contentNumber.'.flac'));
+
                 }
                 $message = 'success';
             }
@@ -863,5 +864,25 @@ class GraphController extends Controller
             else unlink("$dir/$file");
         }
         rmdir($dir);
+    }
+
+    function uploadObject($objectName, $source)
+    {
+        $projectId = 'kjs-speech-api-1506584214035';
+        $bucketName = 'kjs-lms';
+        //$objectName = '255.flac';
+        //$source = storage_path('app/sounds/255.flac');
+        putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-0488e705ae97.json'); //your path to file of cred
+
+        $storage = new StorageClient([
+            'projectId' => $projectId
+        ]);
+        $file = fopen($source, 'r');
+        $bucket = $storage->bucket($bucketName);
+        $object = $bucket->upload($file, [
+            'name' => $objectName,
+            'predefinedAcl' => 'PUBLICREAD'
+        ]);
+        //printf('Uploaded %s to gs://%s/%s' . PHP_EOL, basename($source), $bucketName, $objectName);
     }
 }

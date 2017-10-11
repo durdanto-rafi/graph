@@ -871,7 +871,7 @@
                 $('.overlay').hide();
                 if(data.message == 'success')
                 {
-                    swal("Success !", "TB content converted to MP3 audio", "success");
+                    swal("Success !", "Converted uploaded to cloud storage", "success");
                 }
                 else
                 {
