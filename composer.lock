@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "83567efe395011e3bbcf90b814f09035",
+    "content-hash": "61da0915f6e8d7ef749907633b3ebead",
     "packages": [
         {
             "name": "alchemy/binary-driver",
@@ -62,6 +62,55 @@
                 "driver"
             ],
             "time": "2016-03-02T13:49:15+00:00"
+        },
+        {
+            "name": "barryvdh/laravel-debugbar",
+            "version": "v2.4.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/barryvdh/laravel-debugbar.git",
+                "reference": "d7c88f08131f6404cb714f3f6cf0642f6afa3903"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/barryvdh/laravel-debugbar/zipball/d7c88f08131f6404cb714f3f6cf0642f6afa3903",
+                "reference": "d7c88f08131f6404cb714f3f6cf0642f6afa3903",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "5.1.*|5.2.*|5.3.*|5.4.*|5.5.*",
+                "maximebf/debugbar": "~1.13.0",
+                "php": ">=5.5.9",
+                "symfony/finder": "~2.7|~3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Barryvdh\\Debugbar\\": "src/"
+                },
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Barry vd. Heuvel",
+                    "email": "barryvdh@gmail.com"
+                }
+            ],
+            "description": "PHP Debugbar integration for Laravel",
+            "keywords": [
+                "debug",
+                "debugbar",
+                "laravel",
+                "profiler",
+                "webprofiler"
+            ],
+            "time": "2017-07-21T11:56:48+00:00"
         },
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -1302,6 +1351,67 @@
             "time": "2017-08-06T17:41:04+00:00"
         },
         {
+            "name": "maximebf/debugbar",
+            "version": "1.13.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/maximebf/php-debugbar.git",
+                "reference": "afee79a236348e39a44cb837106b7c5b4897ac2a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/maximebf/php-debugbar/zipball/afee79a236348e39a44cb837106b7c5b4897ac2a",
+                "reference": "afee79a236348e39a44cb837106b7c5b4897ac2a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0",
+                "psr/log": "^1.0",
+                "symfony/var-dumper": "^2.6|^3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.0|^5.0"
+            },
+            "suggest": {
+                "kriswallsmith/assetic": "The best way to manage assets",
+                "monolog/monolog": "Log using Monolog",
+                "predis/predis": "Redis storage"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.13-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DebugBar\\": "src/DebugBar/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxime Bouroumeau-Fuseau",
+                    "email": "maxime.bouroumeau@gmail.com",
+                    "homepage": "http://maximebf.com"
+                },
+                {
+                    "name": "Barry vd. Heuvel",
+                    "email": "barryvdh@gmail.com"
+                }
+            ],
+            "description": "Debug bar in the browser for php application",
+            "homepage": "https://github.com/maximebf/php-debugbar",
+            "keywords": [
+                "debug",
+                "debugbar"
+            ],
+            "time": "2017-01-05T08:46:19+00:00"
+        },
+        {
             "name": "monolog/monolog",
             "version": "1.23.0",
             "source": {
@@ -1614,70 +1724,6 @@
                 "random"
             ],
             "time": "2017-09-27T21:40:39+00:00"
-        },
-        {
-            "name": "pbmedia/laravel-ffmpeg",
-            "version": "1.1.12",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pascalbaljetmedia/laravel-ffmpeg.git",
-                "reference": "e2f295c8e83b57c6ce569f8fb8019ad4b46fbdff"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pascalbaljetmedia/laravel-ffmpeg/zipball/e2f295c8e83b57c6ce569f8fb8019ad4b46fbdff",
-                "reference": "e2f295c8e83b57c6ce569f8fb8019ad4b46fbdff",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/config": "^5.1",
-                "illuminate/filesystem": "^5.1",
-                "illuminate/log": "^5.1",
-                "league/flysystem": "^1.0",
-                "php": "^7.0",
-                "php-ffmpeg/php-ffmpeg": "~0.6",
-                "symfony/process": "^2.5|^3.0"
-            },
-            "require-dev": {
-                "mockery/mockery": "^0.9.5",
-                "phpunit/phpunit": "5.*",
-                "scrutinizer/ocular": "^1.3"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Pbmedia\\LaravelFFMpeg\\FFMpegServiceProvider"
-                    ],
-                    "aliases": {
-                        "FFMpeg": "Pbmedia\\LaravelFFMpeg\\FFMpegFacade"
-                    }
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Pbmedia\\LaravelFFMpeg\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Pascal Baljet",
-                    "email": "pascal@pascalbaljetmedia.com",
-                    "homepage": "http://www.pascalbaljetmedia.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "FFMpeg for Laravel 5.1 and higher",
-            "homepage": "https://github.com/pbmedia/laravel-ffmpeg",
-            "keywords": [
-                "laravel-ffmpeg",
-                "pbmedia"
-            ],
-            "time": "2017-09-05T19:27:15+00:00"
         },
         {
             "name": "php-ffmpeg/php-ffmpeg",
@@ -3348,6 +3394,70 @@
                 "object graph"
             ],
             "time": "2017-04-12T18:52:22+00:00"
+        },
+        {
+            "name": "pbmedia/laravel-ffmpeg",
+            "version": "1.1.12",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pascalbaljetmedia/laravel-ffmpeg.git",
+                "reference": "e2f295c8e83b57c6ce569f8fb8019ad4b46fbdff"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pascalbaljetmedia/laravel-ffmpeg/zipball/e2f295c8e83b57c6ce569f8fb8019ad4b46fbdff",
+                "reference": "e2f295c8e83b57c6ce569f8fb8019ad4b46fbdff",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/config": "^5.1",
+                "illuminate/filesystem": "^5.1",
+                "illuminate/log": "^5.1",
+                "league/flysystem": "^1.0",
+                "php": "^7.0",
+                "php-ffmpeg/php-ffmpeg": "~0.6",
+                "symfony/process": "^2.5|^3.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^0.9.5",
+                "phpunit/phpunit": "5.*",
+                "scrutinizer/ocular": "^1.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Pbmedia\\LaravelFFMpeg\\FFMpegServiceProvider"
+                    ],
+                    "aliases": {
+                        "FFMpeg": "Pbmedia\\LaravelFFMpeg\\FFMpegFacade"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Pbmedia\\LaravelFFMpeg\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pascal Baljet",
+                    "email": "pascal@pascalbaljetmedia.com",
+                    "homepage": "http://www.pascalbaljetmedia.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "FFMpeg for Laravel 5.1 and higher",
+            "homepage": "https://github.com/pbmedia/laravel-ffmpeg",
+            "keywords": [
+                "laravel-ffmpeg",
+                "pbmedia"
+            ],
+            "time": "2017-09-05T19:27:15+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",

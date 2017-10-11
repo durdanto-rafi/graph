@@ -6,12 +6,13 @@
     "type": "project",
     "require": {
         "php": ">=5.6.4",
+        "barryvdh/laravel-debugbar": "~2.4",
         "google/cloud": "^0.39.2",
         "google/cloud-speech": "^0.7.0",
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
         "laravelcollective/html": "^5.4",
-        "pbmedia/laravel-ffmpeg": "^1.1"
+        "php-ffmpeg/php-ffmpeg": "^0.9.5"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

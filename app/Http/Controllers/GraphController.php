@@ -33,6 +33,9 @@ use File;
 
 use App\Libraries\Audio\ConcatAudioFilter;
 
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Barryvdh\Debugbar\Facade as Debugbar;
+
 class GraphController extends Controller
 {
     public $contentInfo = array("eventCount" => 0, 
@@ -594,14 +597,11 @@ class GraphController extends Controller
 
     private function convertToFlac()
     {
-        $ffmpeg = FFMpeg\FFMpeg::create([
-            'ffmpeg.binaries'  => '/root/bin/ffmpeg',
-            'ffprobe.binaries' => '/root/bin/ffmpeg',
-            'timeout'          => 3600, // the timeout for the underlying process
-            'ffmpeg.threads'   => 1,   // the number of threads that FFMpeg should use
+        $ffmpeg = \FFMpeg\FFMpeg::create([
+            'ffmpeg.binaries' => 'C:/ffmpeg/bin/ffmpeg.exe',
+            'fprobe.binaries' => 'C:/ffmpeg/bin/ffprobe.exe',
         ]);
-        
-        $audio = $ffmpeg->open('track.mp3');
+        $audio = $ffmpeg->open(storage_path('app/sounds/255/1.mp3'));
         
         $format = new FFMpeg\Format\Audio\Flac();
         $format->on('progress', function ($audio, $format, $percentage) {
@@ -610,7 +610,7 @@ class GraphController extends Controller
         
         $format
             ->setAudioChannels(1)
-            ->setAudioKiloBitrate(16);
+            ->setAudioKiloBitrate(32);
         
         $audio->save($format, 'track.flac');
     }
@@ -634,7 +634,7 @@ class GraphController extends Controller
     {
         # Your Google Cloud Platform project ID
         $projectId = 'kjs-speech-api-1506584214035';
-        putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-0829ca3f94ba.json'); //your path to file of cred
+        putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-997d7db4b8f5.json'); //your path to file of cred
 
         # Instantiates a client
         $speech = new SpeechClient([
@@ -715,6 +715,8 @@ class GraphController extends Controller
 
     function convertToAudio(Request $request)
     {
+        //$this->concatAudio();
+
         $message = 'error';
         // Reading Tb content
         try 
@@ -729,7 +731,7 @@ class GraphController extends Controller
                     break;
                 }
             }
-             
+            
     
             if($file != null)
             {
@@ -744,34 +746,43 @@ class GraphController extends Controller
                 $play_data = $tb->setBinary($file)->getPlayData();
                 for ($i=0; $i < count($play_data['blocks']); $i++) 
                 {
-                    header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
-                    header('Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . ' GMT');
-                    header('Cache-Control: no-store, no-cache, must-revalidate');
-                    header('Cache-Control: post-check=0, pre-check=0', false);
-                    header('Pragma: no-cache'); 
-                    header("Content-Type: audio/mpeg");
-                    header("Content-Length: " . strlen($play_data['blocks'][$i]['audio']));
-                    header('Content-Disposition: attachment; filename="'.$i.'.mp3"');
                     File::put(storage_path('app/sounds/'.$request->contentNumber.'/'.$i.'.mp3'), $play_data['blocks'][$i]['audio']);
                 }
 
-                $dirFiles = scandir(storage_path('app/sounds/'.$request->contentNumber));
-                if(count($dirFiles) > 0)
+                // Reading MP3 from folder
+                $soundFileAbsolutePaths = glob(storage_path('app/sounds/'.$request->contentNumber.'/*.*'));
+                $tempPaths = array();
+                for ($i=1; $i < count($soundFileAbsolutePaths); $i++) 
+                { 
+                    array_push($tempPaths, $soundFileAbsolutePaths[$i]);
+                } 
+                
+                Debugbar::info($soundFileAbsolutePaths);
+                // Concating the Blocks MP3s and Converting to FLAC
+                if(count($soundFileAbsolutePaths) > 1)
                 {
-                    $mp3 = new Mp3(storage_path('app/sounds/') . $dirFiles[0]);
-                    $mp3->striptags();
-                }
+                    $ffmpeg = \FFMpeg\FFMpeg::create([
+                        'ffmpeg.binaries' => 'C:/ffmpeg/bin/ffmpeg.exe',
+                        'fprobe.binaries' => 'C:/ffmpeg/bin/ffprobe.exe',
+                    ]);
+                    $audio = $ffmpeg->open($soundFileAbsolutePaths[0]);
+                    $filter = new ConcatAudioFilter();
+                    $filter->addFiles($tempPaths);
+            
+                    $format = new FFMpeg\Format\Audio\Flac();
+                    $format->on('progress', function ($audio, $format, $percentage) {
+                        echo "$percentage % transcoded";
+                    });
+                    
+                    $format
+                        ->setAudioChannels(1)
+                        ->setAudioKiloBitrate(32);
+                    $audio->addFilter($filter);
+                    $audio->save($format, storage_path('app/sounds/'.$request->contentNumber.'.flac'));
 
-                foreach ($dirFiles as $dirFile) 
-                {
-                    $cas_character = storage_path('app/sounds/') . $dirFile;
-                    $cas_mp3equivalent = new Mp3($cas_character);
-                    $mp3->mergeBehind($cas_mp3equivalent);
-                    $mp3->striptags();
+                    $folderPath = storage_path('app/sounds/'.$request->contentNumber);
+                    $this->rmdir_recursive($folderPath);
                 }
-
-                $mp3->output('word.mp3');
-    
                 $message = 'success';
             }
             
@@ -817,5 +828,40 @@ class GraphController extends Controller
     {
         sscanf($minuteSecond, "%d:%d:%d", $hours, $minutes, $seconds);
         return isset($seconds) ? $hours * 3600 + $minutes * 60 + $seconds : $hours * 60 + $minutes;
+    }
+
+    function concatAudio()
+    {
+        $ffmpeg = \FFMpeg\FFMpeg::create([
+            'ffmpeg.binaries' => 'C:/ffmpeg/bin/ffmpeg.exe',
+            'fprobe.binaries' => 'C:/ffmpeg/bin/ffprobe.exe',
+        ]);
+        $audio = $ffmpeg->open(storage_path('app/sounds/335/0.mp3'));
+        $filter = new ConcatAudioFilter();
+        $filter->addFiles([
+            storage_path('app/sounds/335/1.mp3'),
+            storage_path('app/sounds/335/2.mp3')
+        ]);
+
+        $format = new FFMpeg\Format\Audio\Flac();
+        $format->on('progress', function ($audio, $format, $percentage) {
+            echo "$percentage % transcoded";
+        });
+        
+        $format
+            ->setAudioChannels(1)
+            ->setAudioKiloBitrate(32);
+        $audio->addFilter($filter);
+        $audio->save($format, storage_path('app/sounds/335/full.flac'));
+    }
+
+    function rmdir_recursive($dir) 
+    {
+        foreach(scandir($dir) as $file) {
+            if ('.' === $file || '..' === $file) continue;
+            if (is_dir("$dir/$file")) rmdir_recursive("$dir/$file");
+            else unlink("$dir/$file");
+        }
+        rmdir($dir);
     }
 }
