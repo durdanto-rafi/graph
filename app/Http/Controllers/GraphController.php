@@ -69,7 +69,7 @@ class GraphController extends Controller
     {
         //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
         //$this->upload_object();
-        Session::put('progress', 0);
+        Session::put('progress', 1);
         Session::save();
         $user = $request->session()->get('user');
         if($user != null)
