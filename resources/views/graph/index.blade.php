@@ -690,9 +690,28 @@
                 method: 'POST',
                 data: { 'startTime': options.data.labels[startIndex], 'endTime': options.data.labels[points[0]._index], 'contentNumber': contentNumber, _token: token },
                 success: function (data) {
+                    console.log(data);
+                    var sentenceFlag = null;
+                    var sentences = new Array();
+                    if(sentences.length > 0){
+                        sentenceFlag = data.words[0].transcript_number;
+                    }
+                    var sentenceWord = '';
+                    data.words.forEach(function (word) {
+                        if(sentenceFlag === word.transcript_number){
+                            sentenceWord += word.word_kanji + ' ';
+                        }
+                        else{
+                            sentences.push(sentenceWord);
+                            sentenceWord = '';
+                            sentenceFlag = word.transcript_number;
+                        }
+                        
+                    });
+                    $('#transcribedData').html(sentences.join("。"));
                     $('.overlay').hide();
                     $('#modalHeader').html("Transcribed audio with Google AI (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
-                    $('#transcribedData').html(data.kanji.join(""));
+                    //$('#transcribedData').html(data.kanji.join(" "));
                     $('#modalTranscribe').modal('show');
                 }
             });

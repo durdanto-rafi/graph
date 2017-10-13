@@ -664,7 +664,7 @@ class GraphController extends Controller
             $options
         );
 
-        Session::put('progress', 0);
+        Session::put('progress', 1);
         Session::save();
 
         // Wait for the operation to complete
@@ -829,13 +829,13 @@ class GraphController extends Controller
             }
 
             $apiSpeechWords = ApiSpeechWord::where('start_time', '>=', $startTime)->where('start_time', '<=', $endTime)->where('student_content_number', $request->contentNumber)->get();
-            foreach ($apiSpeechWords as $apiSpeechWord) 
-            {
-                array_push($kanji, $apiSpeechWord->word_kanji);
-                array_push($katakana, $apiSpeechWord->word_katakana);
-            }
+            // foreach ($apiSpeechWords as $apiSpeechWord) 
+            // {
+            //     //array_push($kanji, $apiSpeechWord->word_kanji);
+            //     //array_push($katakana, $apiSpeechWord->word_katakana);
+            // }
 
-            return response()->json(['kanji'=> $kanji, 'katakana'=> $katakana]);
+            return response()->json(['words'=> $apiSpeechWords]);
         }
     }
 
