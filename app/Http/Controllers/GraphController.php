@@ -11,6 +11,8 @@ use App\Models\TblSchoolContentsBlock;
 use Exception;
 use Google\Cloud\Language\LanguageClient;
 use FFMpeg;
+use Session;
+use Response;
 
 # Includes the autoloader for libraries installed with composer
 use Vendor\autoload;
@@ -67,6 +69,8 @@ class GraphController extends Controller
     {
         //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
         //$this->upload_object();
+        Session::put('progress', 0);
+        Session::save();
         $user = $request->session()->get('user');
         if($user != null)
         {
@@ -654,7 +658,7 @@ class GraphController extends Controller
         $storage = new StorageClient();
         $object = $storage->bucket('kjs-lms')->object($fileName.'.flac');
 
-        // Create the asyncronous recognize operation
+        //Create the asyncronous recognize operation
         $operation = $speech->beginRecognizeOperation(
             $object,
             $options
@@ -663,7 +667,18 @@ class GraphController extends Controller
         // Wait for the operation to complete
         $backoff = new ExponentialBackoff(100);
         $backoff->execute(function () use ($operation) {
-            print('Waiting for operation to complete' . PHP_EOL);
+            //print(implode(",", $operation->reload()['metadata']). PHP_EOL);
+
+
+
+            if (array_key_exists('progressPercent', $operation->reload()['metadata'])) 
+            {
+                //print($operation->reload()['metadata']['progressPercent']. PHP_EOL);
+
+                Session::put('progress', $operation->reload()['metadata']['progressPercent']);
+                Session::save();
+            }
+
             $operation->reload();
             if (!$operation->isComplete()) {
                 throw new Exception('Job has not yet completed', 500);
@@ -672,6 +687,7 @@ class GraphController extends Controller
 
         // Print the results
         if ($operation->isComplete()) {
+            $this->deleteData($fileName);
             $results = $operation->results();
 
             $transcribedData = array();
@@ -772,9 +788,9 @@ class GraphController extends Controller
                         //echo "$percentage % transcoded";
                     });
                     
-                    $format
-                        ->setAudioChannels(1)
-                        ->setAudioKiloBitrate(32);
+                    // $format
+                    //     ->setAudioChannels(1)
+                    //     ->setAudioKiloBitrate(32);
                     $audio->addFilter($filter);
                     $audio->save($format, storage_path('app/sounds/'.$request->contentNumber.'.flac'));
 
@@ -884,5 +900,16 @@ class GraphController extends Controller
             'predefinedAcl' => 'PUBLICREAD'
         ]);
         //printf('Uploaded %s to gs://%s/%s' . PHP_EOL, basename($source), $bucketName, $objectName);
+    }
+
+    public function getProgess() 
+    {
+        return Response::json(array(Session::get('progress')));
+    }
+
+    function deleteData($contentNumber)
+    {
+        ApiSpeechWord::where('student_content_number', $contentNumber)->delete();
+        ApiSpeechTranscript::where('student_content_number', $contentNumber)->delete();
     }
 }

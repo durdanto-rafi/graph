@@ -1,254 +1,264 @@
-@extends('layouts.app') 
-@section('title', 'LMS log data graph') 
-@section('content')
-
-
-@if ($message = Session::get('success'))
-    <div class="alert alert-success">
-        <p>{{ $message }}</p>
-    </div>
-@endif 
-
-{!! Form::open(array('id'=>'frmGraph')) !!}
-    <div class="col-xs-12 col-sm-4 col-md-4">
-        <div class="row">
-            <div class="col-xs-12 col-sm-6 col-md-6">
-                <div class="form-group">
-                    <label>Subject</label>
-                    {!! Form::select('Subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
-                    <!-- /.input group -->
-                </div>
-            </div>
-
-            <div class="col-xs-12 col-sm-6 col-md-6">
-                <div class="form-group">
-                    <label>Content</label>
-                    {!! Form::select('Content', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber']) !!}
-                    <!-- /.input group -->
-                </div>
-            </div>
-
-            {{--  <div class="col-xs-12 col-sm-4 col-md-4">
-                <div class="form-group">
-                    <label>Test</label>
-                    {!! Form::select('Test', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
-                    <!-- /.input group -->
-                </div>
-            </div>  --}}
-        </div>
-        <div class="row">
-            <div class="col-xs-12 col-sm-4 col-md-4">
-                <label>Rank</label><br/>
-                <input type="checkbox" onClick="toggle(this)" id="chkAll" /> All<br/>
-                @foreach ($ranks as $rank)
-                    <input type="checkbox" class="chkRank" name="rank" value="{{$rank->rank_number}}"> {{$rank->name}} <br>
-                @endforeach
-            </div>
-
-            <div class="col-xs-12 col-sm-4 col-md-4">
-                <label>Growth</label>
-                <div class="form-group">
-                    <label>
-                        <input name="growth"  type="radio" value="1" id="chkOver" /> Over 3<br/>
-                        <input name="growth"  type="radio" value="2" id="chkLittle" /> Change little<br/>
-                        <input name="growth"  type="radio" value="3" id="chkUnder" /> Under 3<br/>
-                    </label>
-                </div>
-            </div>
-            
-            <!-- /.box -->
-            <div class="row">
-                <div class="col-xs-6 col-sm-4 col-md-4">
-                    <div class="form-group">
-                        <label>From Date</label>
-                        <div class="input-group date">
-                            {!! Form::text('DateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtFromDateInput', 'onkeypress'=>'return false;')) !!}
-                        </div>
-                        <!-- /.input group -->
-                    </div>
-                </div>
-
-                <div class="col-xs-6 col-sm-4 col-md-4">
-                    <div class="form-group">
-                        <label>To Date</label>
-                        <div class="input-group date">
-                            {!! Form::text('DateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker', 'id'=>'txtToDateInput', 'onkeypress'=>'return false;')) !!}
-                        </div>
-                        <!-- /.input group -->
-                    </div>
-                </div>
-            </div>
-
-            
-        </div>
-
-        <div class="col-xs-12 col-sm-12 col-md-12 text-center">
+@extends('layouts.app') @section('title', 'LMS log data graph') @section('content') @if ($message = Session::get('success'))
+<div class="alert alert-success">
+    <p>{{ $message }}</p>
+</div>
+@endif {!! Form::open(array('id'=>'frmGraph')) !!}
+<div class="col-xs-12 col-sm-4 col-md-4">
+    <div class="row">
+        <div class="col-xs-12 col-sm-6 col-md-6">
             <div class="form-group">
-                {{ Form::submit('Submit', array('class' => 'btn btn-primary btn-sm')) }}
+                <label>Subject</label>
+                {!! Form::select('Subject', ['' => 'Select'] + $subjects, null, ['class'=>'form-control', 'id'=>'ddlSubject']) !!}
+                <!-- /.input group -->
             </div>
         </div>
 
-        <div class="col-xs-12 col-sm-12 col-md-12">
-            <!-- LINE CHART -->
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Content Information</h3>
-
-                    <div class="box-tools pull-right">
-                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="box-body">
-                    <div class="col-xs-6 col-sm-6 col-md-6">
-                        <div class="form-group">
-                            <label>Section Name</label> 
-                            {!! Form::text('subject_section_name', null, array('class' => 'form-control', 'id'=>'txtSubjectSectionName', 'disabled')) !!}
-                        </div>
-                    </div>
-
-                    <div class="col-xs-6 col-sm-6 col-md-6">
-                        <div class="form-group">
-                            <label>Subject Name</label> 
-                            {!! Form::text('subject_name', null, array('class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
-                        </div>
-                    </div>
-
-                    <div class="col-xs-6 col-sm-6 col-md-6">
-                        <div class="form-group">
-                            <label>Viewded From</label> 
-                            <div class="input-group date">
-                                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredFrom', 'disabled')) !!}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xs-6 col-sm-6 col-md-6">
-                        <div class="form-group">
-                            <label>Viewded To</label> 
-                            <div class="input-group date">
-                                {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredTo', 'disabled')) !!}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xs-3 col-sm-3 col-md-3">
-                        <div class="form-group">
-                            <label>Event</label> 
-                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
-                        </div>
-                    </div>
-
-                    <div class="col-xs-3 col-sm-3 col-md-3">
-                        <div class="form-group">
-                            <label>View</label> 
-                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
-                        </div>
-                    </div>
-
-                    <div class="col-xs-3 col-sm-3 col-md-3">
-                        <div class="form-group">
-                            <label>Student</label> 
-                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalStudent', 'disabled')) !!}
-                        </div>
-                    </div>
-
-                    <div class="col-xs-3 col-sm-3 col-md-3">
-                        <div class="form-group">
-                            <label>E/V</label> 
-                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
-                        </div>
-                    </div>
-
-                    <div class="col-xs-12 col-sm-12 col-md-12">
-                        <div class="box-body">
-                            <div class="chart">
-                                <canvas id="canEventsRatio"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- /.box-body -->
+        <div class="col-xs-12 col-sm-6 col-md-6">
+            <div class="form-group">
+                <label>Content</label>
+                {!! Form::select('Content', [], null, ['class'=>'form-control select2', 'style'=>'width: 100%;', 'id'=>'ddlContentNumber'])
+                !!}
+                <!-- /.input group -->
             </div>
-          <!-- /.box -->
+        </div>
+
+        {{--
+        <div class="col-xs-12 col-sm-4 col-md-4">
+            <div class="form-group">
+                <label>Test</label>
+                {!! Form::select('Test', ['' => 'Select'] + $tests, null, ['class'=>'form-control', 'id'=>'ddlTest']) !!}
+                <!-- /.input group -->
+            </div>
+        </div> --}}
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-sm-4 col-md-4">
+            <label>Rank</label>
+            <br/>
+            <input type="checkbox" onClick="toggle(this)" id="chkAll" /> All
+            <br/> @foreach ($ranks as $rank)
+            <input type="checkbox" class="chkRank" name="rank" value="{{$rank->rank_number}}"> {{$rank->name}}
+            <br> @endforeach
+        </div>
+
+        <div class="col-xs-12 col-sm-4 col-md-4">
+            <label>Growth</label>
+            <div class="form-group">
+                <label>
+                    <input name="growth" type="radio" value="1" id="chkOver" /> Over 3
+                    <br/>
+                    <input name="growth" type="radio" value="2" id="chkLittle" /> Change little
+                    <br/>
+                    <input name="growth" type="radio" value="3" id="chkUnder" /> Under 3
+                    <br/>
+                </label>
+            </div>
+        </div>
+
+        <!-- /.box -->
+        <div class="row">
+            <div class="col-xs-6 col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>From Date</label>
+                    <div class="input-group date">
+                        {!! Form::text('DateFrom', null, array('placeholder' => 'Contract Start Date', 'class' => 'form-control pull-right datepicker',
+                        'id'=>'txtFromDateInput', 'onkeypress'=>'return false;')) !!}
+                    </div>
+                    <!-- /.input group -->
+                </div>
+            </div>
+
+            <div class="col-xs-6 col-sm-4 col-md-4">
+                <div class="form-group">
+                    <label>To Date</label>
+                    <div class="input-group date">
+                        {!! Form::text('DateTo', null, array('placeholder' => 'Contract Period Date', 'class' => 'form-control pull-right datepicker',
+                        'id'=>'txtToDateInput', 'onkeypress'=>'return false;')) !!}
+                    </div>
+                    <!-- /.input group -->
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="col-xs-12 col-sm-12 col-md-12 text-center">
+        <div class="form-group">
+            {{ Form::submit('Submit', array('class' => 'btn btn-primary btn-sm')) }}
         </div>
     </div>
-    <div class="col-xs-12 col-sm-8 col-md-8">
-        <div class="col-xs-12 col-sm-12 col-md-12">
-            <!-- LINE CHART -->
-            <div class="nav-tabs-custom">
-                <ul class="nav nav-tabs">
-                    <li><a href="#density" data-toggle="tab">View Density</a></li>
-                    <li><a href="#password" data-toggle="tab">EVent Density / Event Count * 100</a></li>
-                    <li  class="active"><a href="#audio" data-toggle="tab">Audio</a></li>
-                </ul>
-                <div class="tab-content">
-                    <div class="tab-pane" id="density">
-                        <div class="chart">
-                            <canvas id="canViewDensity" ></canvas>
-                            <div class="text-center">
-                                <button id="btnResetZoomViewDensity" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- /.tab-pane -->
-                    <div class="tab-pane" id="password">
-                        <div class="chart">
-                            <canvas id="canViewDensityPerCount" ></canvas>
-                            <div class="text-center">
-                                <button id="btnResetZoomDensityPerView" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- /.tab-pane -->
-                    <div class="active tab-pane" id="audio">
-                        <div class="chart">
-                            <canvas id="overlay" ></canvas>    
-                            <canvas id="canAudio" ></canvas>
-                            <div class="text-center">
-                                <button id="btnTranscribe" class="btn btn-primary btn-xs" onclick="return false;" > Transcribe </button>
-                                <button id="btnConvert" class="btn btn-primary btn-xs" onclick="return false;" > Convert </button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- /.tab-pane -->
-                </div>
-                <!-- /.tab-content -->
-            </div>
-            <!-- /.nav-tabs-custom -->
-        </div>
 
-        <div class="col-xs-12 col-sm-12 col-md-12">
-            <!-- LINE CHART -->
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Events</h3>
-                    <div class="box-tools pull-right">
-                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                        </button>
+    <div class="col-xs-12 col-sm-12 col-md-12">
+        <!-- LINE CHART -->
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">Content Information</h3>
+
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-xs-6 col-sm-6 col-md-6">
+                    <div class="form-group">
+                        <label>Section Name</label>
+                        {!! Form::text('subject_section_name', null, array('class' => 'form-control', 'id'=>'txtSubjectSectionName', 'disabled'))
+                        !!}
                     </div>
                 </div>
-                <div class="box-body">
+
+                <div class="col-xs-6 col-sm-6 col-md-6">
+                    <div class="form-group">
+                        <label>Subject Name</label>
+                        {!! Form::text('subject_name', null, array('class' => 'form-control', 'id'=>'txtSubjectName', 'disabled')) !!}
+                    </div>
+                </div>
+
+                <div class="col-xs-6 col-sm-6 col-md-6">
+                    <div class="form-group">
+                        <label>Viewded From</label>
+                        <div class="input-group date">
+                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredFrom', 'disabled')) !!}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xs-6 col-sm-6 col-md-6">
+                    <div class="form-group">
+                        <label>Viewded To</label>
+                        <div class="input-group date">
+                            {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtRegisteredTo', 'disabled')) !!}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xs-3 col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Event</label>
+                        {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalEvent', 'disabled')) !!}
+                    </div>
+                </div>
+
+                <div class="col-xs-3 col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>View</label>
+                        {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalView', 'disabled')) !!}
+                    </div>
+                </div>
+
+                <div class="col-xs-3 col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>Student</label>
+                        {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtTotalStudent', 'disabled')) !!}
+                    </div>
+                </div>
+
+                <div class="col-xs-3 col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <label>E/V</label>
+                        {!! Form::text('subjectName', null, array('class' => 'form-control', 'id'=>'txtEventPerView', 'disabled')) !!}
+                    </div>
+                </div>
+
+                <div class="col-xs-12 col-sm-12 col-md-12">
+                    <div class="box-body">
+                        <div class="chart">
+                            <canvas id="canEventsRatio"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.box -->
+    </div>
+</div>
+<div class="col-xs-12 col-sm-8 col-md-8">
+    <div class="col-xs-12 col-sm-12 col-md-12">
+        <!-- LINE CHART -->
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li>
+                    <a href="#density" data-toggle="tab">View Density</a>
+                </li>
+                <li>
+                    <a href="#password" data-toggle="tab">EVent Density / Event Count * 100</a>
+                </li>
+                <li class="active">
+                    <a href="#audio" data-toggle="tab">Audio</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane" id="density">
                     <div class="chart">
-                        <canvas id="canEvents"></canvas>
+                        <canvas id="canViewDensity"></canvas>
                         <div class="text-center">
-                            <button id="btnResetZoomEvents" class="btn btn-primary btn-xs" onclick="return false;" > Reset zoom </button>
+                            <button id="btnResetZoomViewDensity" class="btn btn-primary btn-xs" onclick="return false;"> Reset zoom </button>
                         </div>
                     </div>
                 </div>
-                <!-- /.box-body -->
+                <!-- /.tab-pane -->
+                <div class="tab-pane" id="password">
+                    <div class="chart">
+                        <canvas id="canViewDensityPerCount"></canvas>
+                        <div class="text-center">
+                            <button id="btnResetZoomDensityPerView" class="btn btn-primary btn-xs" onclick="return false;"> Reset zoom </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.tab-pane -->
+                <div class="active tab-pane" id="audio">
+                    <div class="chart">
+                        <canvas id="overlay"></canvas>
+                        <canvas id="canAudio"></canvas>
+                        <div class="text-center">
+                            <button id="btnTranscribe" class="btn btn-primary btn-xs" onclick="return false;"> Transcribe </button>
+                            <button id="btnConvert" class="btn btn-primary btn-xs" onclick="return false;"> Convert </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.tab-pane -->
             </div>
-          <!-- /.box -->
+            <!-- /.tab-content -->
         </div>
-
-    </div>
-    <!-- Loading (remove the following to stop the loading)-->
-    <div class="overlay">
-        <i class="fa fa-refresh fa-spin"></i>
+        <!-- /.nav-tabs-custom -->
     </div>
 
-    <div class="modal fade" id="modalTranscribe">
-        <div class="modal-dialog">
+    <div class="col-xs-12 col-sm-12 col-md-12">
+        <!-- LINE CHART -->
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">Events</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="chart">
+                    <canvas id="canEvents"></canvas>
+                    <div class="text-center">
+                        <button id="btnResetZoomEvents" class="btn btn-primary btn-xs" onclick="return false;"> Reset zoom </button>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.box -->
+    </div>
+
+</div>
+<!-- Loading (remove the following to stop the loading)-->
+<div class="overlay">
+    <i class="fa fa-refresh fa-spin"></i>
+</div>
+
+<div class="modal fade" id="modalTranscribe" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -258,20 +268,50 @@
             </div>
             <div class="modal-body">
                 <p id='transcribedData'></p>
-            </div>
+            </div> 
             <div class="modal-footer">
                 <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
             </div>
         </div>
         <!-- /.modal-content -->
-        </div>
-        <!-- /.modal-dialog -->
     </div>
-    <!-- /.modal -->
-{!! Form::close() !!}
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
 
+<!-- /.Progress modal -->
+<div class="modal fade" id="modalProgress" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="box box-solid">
+                        <div class="box-header with-border">
+                            <h3 class="box-title text-center">Speech to Text Transcription with the Cloud Speech API</h3>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <p>Processing</p>
+                            <div class="progress progress-sm active">
+                                <div id='progressBar' class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="20" aria-valuemin="0"
+                                    aria-valuemax="100" style="width: 1%">
+                                    <span id='progressData' class="sr-only"></span>
+                                </div>
+                            </div>
+                        </div>
+                    <!-- /.box -->
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+{!! Form::close() !!} 
 @endsection 
-
 @section('script') 
 @parent
 <script type="text/javascript">
@@ -292,19 +332,19 @@
     });
 
     // Loading Subjects's Contents 
-    $('#ddlSubject').change(function(){
+    $('#ddlSubject').change(function () {
         var subject_number = $(this).val();
         var token = $("input[name='_token']").val();
         $.ajax({
             url: "{{ route('subjectContents') }}",
             method: 'POST',
-            data: {subject_number:subject_number, _token:token},
-            success: function(data) {
+            data: { subject_number: subject_number, _token: token },
+            success: function (data) {
                 $('#ddlContentNumber').html('');
                 $('#ddlContentNumber').html(data.options);
             }
         });
-    }); 
+    });
 
     $('#frmGraph').on('submit', function (e) {
         e.preventDefault();
@@ -314,8 +354,8 @@
         var error = new Array();
         var dataArray = $("#frmGraph").serializeArray();
         //console.log(dataArray);
-        $(dataArray).each(function(i, field){
-            if(field.value.length == 0){
+        $(dataArray).each(function (i, field) {
+            if (field.value.length == 0) {
                 error.push(field.name);
             }
         });
@@ -327,10 +367,10 @@
                 rank.push(data.value);
             }
         });
-        
 
-        if(rank.length < 1 ){
-            error.push('Rank');   
+
+        if (rank.length < 1) {
+            error.push('Rank');
         }
 
         var growth;
@@ -341,12 +381,12 @@
                 break;
             }
         }
-        
-        if(growth == undefined ){
-            error.push('Growth');   
+
+        if (growth == undefined) {
+            error.push('Growth');
         }
 
-        if(error.length > 0){
+        if (error.length > 0) {
             swal("Need to fillup !", error.join("\n"), "error");
             return false;
         }
@@ -359,19 +399,19 @@
         var dateFrom = $("#txtFromDateInput").val();
         var dateTo = $("#txtToDateInput").val();
         var token = $("input[name='_token']").val();
-        
+
         $.ajax({
             url: "{{ route('graphData') }}",
             method: 'POST',
-            data: {'test':test, 'subject':subject, 'contentNumber':contentNumber, 'rank':rank, 'dateFrom':dateFrom, 'dateTo':dateTo, 'growth':growth, _token:token},
+            data: { 'test': test, 'subject': subject, 'contentNumber': contentNumber, 'rank': rank, 'dateFrom': dateFrom, 'dateTo': dateTo, 'growth': growth, _token: token },
             success: function (data) {
                 $('.overlay').hide();
 
-                if(data.contentInfo.totalViewCount.length == 0){
+                if (data.contentInfo.totalViewCount.length == 0) {
                     swal("Sorry!", "No data");
                     return;
                 }
-                
+
                 document.getElementById('txtSubjectSectionName').value = data.contentInfo.subject_section_name;
                 document.getElementById('txtSubjectName').value = data.contentInfo.subject_name;
                 document.getElementById('txtRegisteredFrom').value = data.contentInfo.registered_from;
@@ -382,55 +422,55 @@
                 document.getElementById('txtEventPerView').value = data.contentInfo.eventPerView;
                 document.getElementById('txtTotalStudent').value = data.contentInfo.totalStudentCount;
 
-                
+
                 // Updating View Density data to chart
                 viewDensityData.labels = data.contentInfo.duration;
                 viewDensityData.datasets.forEach(function (dataset) {
-                    if(dataset.label == 'Blocks'){
+                    if (dataset.label == 'Blocks') {
                         dataset.data = data.contentInfo.blocksForViewDensity;
                     }
-                    if(dataset.label == 'View Density'){
+                    if (dataset.label == 'View Density') {
                         dataset.data = data.contentInfo.indexedViewCount;
                     }
                 });
                 window.viewDensityChart.update();
 
-               
+
                 // Updating Events data to chart
                 eventsData.labels = data.contentInfo.duration;
                 eventsData.datasets.forEach(function (dataset) {
-                    if(dataset.label == 'Blocks'){
+                    if (dataset.label == 'Blocks') {
                         dataset.data = data.contentInfo.blocksForEvents;
                     }
-                    if(dataset.label == 'Pause'){
+                    if (dataset.label == 'Pause') {
                         dataset.data = data.contentInfo.indexedPauseCount;
                     }
-                    if(dataset.label == 'Rewind'){
+                    if (dataset.label == 'Rewind') {
                         dataset.data = data.contentInfo.indexedRewindCount;
                     }
-                    if(dataset.label == 'Forward'){
+                    if (dataset.label == 'Forward') {
                         dataset.data = data.contentInfo.indexedForwardCount;
                     }
                 });
                 window.eventsChart.update();
 
-               
+
                 // Updating Events Ratio data to chart
                 var eventsRatio = [parseFloat(data.contentInfo.pauseRatio), parseFloat(data.contentInfo.rewindRatio), parseFloat(data.contentInfo.forwardRatio)];
                 var eventsRatioColor = [window.chartColors.red, window.chartColors.green, window.chartColors.blue];
-                
+
                 eventsRatioData.datasets[0].data = eventsRatio;
-                eventsRatioData.labels = ["Pause ("+ parseFloat(data.contentInfo.pauseRatio)+"%)","Rewind ("+ parseFloat(data.contentInfo.rewindRatio)+"%)","Forward ("+ parseFloat(data.contentInfo.forwardRatio)+"%)"];
+                eventsRatioData.labels = ["Pause (" + parseFloat(data.contentInfo.pauseRatio) + "%)", "Rewind (" + parseFloat(data.contentInfo.rewindRatio) + "%)", "Forward (" + parseFloat(data.contentInfo.forwardRatio) + "%)"];
                 window.eventsRatioChart.update();
-                
-               
+
+
                 // Updating View Density data Per Count to chart
                 viewDensityPerCountData.labels = data.contentInfo.duration;
                 viewDensityPerCountData.datasets.forEach(function (dataset) {
-                    if(dataset.label == 'Blocks'){
+                    if (dataset.label == 'Blocks') {
                         dataset.data = data.contentInfo.blocksForViewDensity;
                     }
-                    if(dataset.label == 'View Density Per Count'){
+                    if (dataset.label == 'View Density Per Count') {
                         dataset.data = data.contentInfo.indexedViewDensityPerCount;
                     }
                 });
@@ -439,28 +479,26 @@
                 // Updating audio data to chart
                 audioGraphData.labels = data.contentInfo.duration;
                 audioGraphData.datasets.forEach(function (dataset) {
-                    if(dataset.label == 'Blocks'){
+                    if (dataset.label == 'Blocks') {
                         dataset.data = data.contentInfo.blocksForViewDensity;
                     }
-                    if(dataset.label == 'View Density'){
+                    if (dataset.label == 'View Density') {
                         dataset.data = data.contentInfo.indexedViewCount;
                     }
                 });
                 window.audioChart.update();
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 swal("Sorry!", JSON.parse(xhr.responseText));
             }
         });
     });
 
-    function fmtMSS(s)
-    {
-        return(s-(s%=60))/60+(9<s?':':':0')+s
+    function fmtMSS(s) {
+        return (s - (s %= 60)) / 60 + (9 < s ? ':' : ':0') + s
     }
 
-    function clearData()
-    {
+    function clearData() {
         document.getElementById('txtSubjectSectionName').value = '';
         document.getElementById('txtSubjectName').value = '';
         document.getElementById('txtRegisteredFrom').value = '';
@@ -474,7 +512,7 @@
         //drawEventsRatio(0,0,0);
     }
 
-    window.onload = function() {
+    window.onload = function () {
         var startDate = new Date("2015-01-01");
         $("#txtFromDateInput").datepicker('setDate', startDate);
 
@@ -496,7 +534,7 @@
                     mode: 'y',
                 },
                 zoom: {
-                    enabled: true,                      
+                    enabled: true,
                     mode: 'y',
                 }
             }
@@ -515,13 +553,13 @@
                     mode: 'y',
                 },
                 zoom: {
-                    enabled: true,                      
+                    enabled: true,
                     mode: 'y',
                 }
             }
         });
 
-         //Events Ratio chart initialization
+        //Events Ratio chart initialization
         var ctxEventsRatio = document.getElementById("canEventsRatio").getContext("2d");
         window.eventsRatioChart = new Chart(ctxEventsRatio, {
             type: 'horizontalBar',
@@ -537,8 +575,8 @@
                         ticks: {
                             beginAtZero: true,
                             max: 100
-                            }
-                        
+                        }
+
                     }]
                 }
             }
@@ -557,7 +595,7 @@
                     mode: 'y',
                 },
                 zoom: {
-                    enabled: true,                      
+                    enabled: true,
                     mode: 'y',
                 }
             }
@@ -575,7 +613,7 @@
                     mode: 'y',
                 },
                 zoom: {
-                    enabled: true,                      
+                    enabled: true,
                     mode: 'y',
                 },
                 scales: {
@@ -650,9 +688,8 @@
             $.ajax({
                 url: "{{ route('speech-to-text') }}",
                 method: 'POST',
-                data: { 'startTime':options.data.labels[startIndex], 'endTime':options.data.labels[points[0]._index], 'contentNumber':contentNumber,  _token:token},
-                success: function(data) 
-                {
+                data: { 'startTime': options.data.labels[startIndex], 'endTime': options.data.labels[points[0]._index], 'contentNumber': contentNumber, _token: token },
+                success: function (data) {
                     $('.overlay').hide();
                     $('#modalHeader').html("Transcribed audio with Google AI (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
                     $('#transcribedData').html(data.kanji.join(""));
@@ -661,28 +698,28 @@
             });
         });
 
-    };  
+    };
 
-    $('#chkAll').click(function(event) {
+    $('#chkAll').click(function (event) {
         toggle(this);
     });
 
     function toggle(source) {
         checkboxes = document.getElementsByName('rank');
-        for(var i=0, n=checkboxes.length;i<n;i++) {
+        for (var i = 0, n = checkboxes.length; i < n; i++) {
             checkboxes[i].checked = source.checked;
         }
     }
 
-    function setRank(state){
-        $("input[name='rank']").each(function() {
-            if(this.checked){
+    function setRank(state) {
+        $("input[name='rank']").each(function () {
+            if (this.checked) {
                 this.checked = !state;
             }
         });
     }
 
-    $("[name='rank']").click(function(event) {
+    $("[name='rank']").click(function (event) {
         $('#chkAll').attr('checked', false);
     });
 
@@ -823,37 +860,33 @@
     };
 
     $('#btnTranscribe').click(function () {
-        $('.overlay').show();
+        $('#modalProgress').modal('show');
+
+        var interval = null;
+        interval = setInterval(function(){
+            $.get("{{ route('progress') }}", function (data) {
+                //console.log(data);
+                $('#progressBar').css("width", data[0]+"%");
+                $('#progressData').html(data[0]+"% Completed");
+                if(data[0] == 100)
+                {
+                    clearInterval(interval);
+                }
+            });
+        }, 1000);
+        
+
         var token = $("input[name='_token']").val();
         var contentNumber = $("#ddlContentNumber").val();
         $.ajax({
-            xhr: function() {
-                var xhr = new window.XMLHttpRequest();
-                //Upload progress
-                xhr.upload.addEventListener("progress", function (evt) {
-                    if (evt.lengthComputable) {
-                        var percentComplete = evt.loaded / evt.total;
-                        //Do something with upload progress
-                        console.log('percent uploaded: ' + (percentComplete * 100));
-                    }
-                }, false);
-                //Download progress
-                xhr.addEventListener("progress", function (evt) {
-                    if (evt.lengthComputable) {
-                        var percentComplete = evt.loaded / evt.total;
-                        //Do something with download progress
-                        console.log('percent downloaded: ' + (percentComplete * 100));
-                    }
-                }, false);
-                return xhr;
-            },
             url: "{{ route('transcribe') }}",
             method: 'POST',
-            data: {_token:token, contentNumber:contentNumber},
-            success: function(data) {
-                $('.overlay').hide();
-                $('#transcribedData').html(data.transcribedData.join("。"));
-                $('#modalTranscribe').modal('show');
+            data: { _token: token, contentNumber: contentNumber },
+            success: function (data) {
+                $('#modalProgress').modal('hide');
+            },
+            error: function(){
+                clearInterval(interval);
             }
         });
     });
@@ -865,21 +898,17 @@
         $.ajax({
             url: "{{ route('convert') }}",
             method: 'POST',
-            data: {_token:token, contentNumber:contentNumber},
-            success: function(data) 
-            {
+            data: { _token: token, contentNumber: contentNumber },
+            success: function (data) {
                 $('.overlay').hide();
-                if(data.message == 'success')
-                {
+                if (data.message == 'success') {
                     swal("Success !", "Converted uploaded to cloud storage", "success");
                 }
-                else
-                {
+                else {
                     swal("Error !", "TB content not found !", "warning");
                 }
             }
         });
     });
 
-</script>
-@stop
+</script> @stop
