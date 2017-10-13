@@ -664,17 +664,15 @@ class GraphController extends Controller
             $options
         );
 
+        Session::put('progress', 0);
+        Session::save();
+
         // Wait for the operation to complete
         $backoff = new ExponentialBackoff(100);
         $backoff->execute(function () use ($operation) {
             //print(implode(",", $operation->reload()['metadata']). PHP_EOL);
-
-
-
             if (array_key_exists('progressPercent', $operation->reload()['metadata'])) 
             {
-                //print($operation->reload()['metadata']['progressPercent']. PHP_EOL);
-
                 Session::put('progress', $operation->reload()['metadata']['progressPercent']);
                 Session::save();
             }

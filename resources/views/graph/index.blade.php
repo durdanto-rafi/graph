@@ -873,7 +873,7 @@
                     clearInterval(interval);
                 }
             });
-        }, 1000);
+        }, 10000);
         
 
         var token = $("input[name='_token']").val();
