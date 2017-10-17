@@ -286,16 +286,16 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="box box-solid">
-                        <div class="box-header with-border">
-                            <h3 class="box-title text-center">Speech to Text Transcription with the Cloud Speech API</h3>
+                        <div class="box-header with-border text-center">
+                            <h3 class="box-title">Speech to Text Transcription</h3>
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body">
-                            <p>Processing</p>
+                            <p id='progressData'></p>
                             <div class="progress progress-sm active">
                                 <div id='progressBar' class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="20" aria-valuemin="0"
                                     aria-valuemax="100" style="width: 1%">
-                                    <span id='progressData' class="sr-only"></span>
+                                    <span  class="sr-only"></span>
                                 </div>
                             </div>
                         </div>
@@ -333,8 +333,10 @@
 
     // Loading Subjects's Contents 
     $('#ddlSubject').change(function () {
+        $('.overlay').show();
         var subject_number = $(this).val();
         var token = $("input[name='_token']").val();
+        
         $.ajax({
             url: "{{ route('subjectContents') }}",
             method: 'POST',
@@ -342,6 +344,7 @@
             success: function (data) {
                 $('#ddlContentNumber').html('');
                 $('#ddlContentNumber').html(data.options);
+                $('.overlay').hide();
             }
         });
     });
@@ -880,16 +883,15 @@
 
     $('#btnTranscribe').click(function () {
         $('#modalProgress').modal('show');
-
         var interval = null;
         interval = setInterval(function(){
             $.get("{{ route('progress') }}", function (data) {
                 //console.log(data);
                 $('#progressBar').css("width", data[0]+"%");
-                $('#progressData').html(data[0]+"% Completed");
+                $('#progressData').html(data[1] + ', Processing ' + data[0]+"%");
                 if(data[0] == 100)
                 {
-                    clearInterval(interval);
+                    //clearInterval(interval);
                 }
             });
         }, 10000);

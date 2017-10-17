@@ -13,6 +13,7 @@ use Google\Cloud\Language\LanguageClient;
 use FFMpeg;
 use Session;
 use Response;
+use Carbon\Carbon;
 
 # Includes the autoloader for libraries installed with composer
 use Vendor\autoload;
@@ -67,8 +68,10 @@ class GraphController extends Controller
      */
     public function index(Request $request)
     {
+        //dd($this->checkTranscription(205));
         //$this->processData(5533, '2016-03-01 0:00:00', '2016-08-31 0:00:00');
         //$this->upload_object();
+        
         Session::put('progress', 1);
         Session::save();
         $user = $request->session()->get('user');
@@ -158,6 +161,7 @@ class GraphController extends Controller
      */
     public function getSubjectContents(Request $request)
     {
+        //$this->transcribeAll($request->subject_number);
         if($request->ajax()){
     		$contents = DB::select("SELECT DISTINCT
                                         d.school_contents_number
@@ -599,26 +603,6 @@ class GraphController extends Controller
         return response()->json(['transcribedData'=> $transcribedData]);
     }
 
-    private function convertToFlac()
-    {
-        $ffmpeg = \FFMpeg\FFMpeg::create([
-            'ffmpeg.binaries' => 'C:/ffmpeg/bin/ffmpeg.exe',
-            'fprobe.binaries' => 'C:/ffmpeg/bin/ffprobe.exe',
-        ]);
-        $audio = $ffmpeg->open(storage_path('app/sounds/255/1.mp3'));
-        
-        $format = new FFMpeg\Format\Audio\Flac();
-        $format->on('progress', function ($audio, $format, $percentage) {
-            echo "$percentage % transcoded";
-        });
-        
-        $format
-            ->setAudioChannels(1)
-            ->setAudioKiloBitrate(32);
-        
-        $audio->save($format, 'track.flac');
-    }
-
     /**
     * Transcribe an audio file using Google Cloud Speech API
     * Example:
@@ -636,6 +620,7 @@ class GraphController extends Controller
     */
     function getTranscribe(Request $request)
     {
+        //$this->transcribeAll();
         # Your Google Cloud Platform project ID
         $projectId = 'kjs-speech-api-1506584214035';
         putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-997d7db4b8f5.json'); //your path to file of cred
@@ -698,6 +683,7 @@ class GraphController extends Controller
                 $apiSpeechTranscript->student_content_number = $fileName;
                 $apiSpeechTranscript->transcript = $alternative['transcript'];
                 $apiSpeechTranscript->confidence = $alternative['confidence'];
+                $apiSpeechTranscript->created_at = Carbon::now();
                 $apiSpeechTranscript->save();
                 $insertedId = $apiSpeechTranscript->transcript_number;
 
@@ -721,6 +707,7 @@ class GraphController extends Controller
                     $apiSpeechWord->word_kanji = $kanji;
                     $apiSpeechWord->word_katakana = $katakana;
                     $apiSpeechWord->transcript_number = $insertedId;
+                    $apiSpeechWord->created_at = Carbon::now();
                     $apiSpeechWord->save();
                 }
             }
@@ -786,14 +773,14 @@ class GraphController extends Controller
                         //echo "$percentage % transcoded";
                     });
                     
-                    // $format
-                    //     ->setAudioChannels(1)
-                    //     ->setAudioKiloBitrate(32);
+                    $format
+                        ->setAudioChannels(1)
+                        ->setAudioKiloBitrate(32);
                     $audio->addFilter($filter);
                     $audio->save($format, storage_path('app/sounds/'.$request->contentNumber.'.flac'));
 
                     $folderPath = storage_path('app/sounds/'.$request->contentNumber);
-                    $this->rmdir_recursive($folderPath);
+                    $this->deleteFolder($folderPath);
 
                     $this->uploadObject($request->contentNumber.'.flac', storage_path('app/sounds/'.$request->contentNumber.'.flac'));
 
@@ -835,6 +822,8 @@ class GraphController extends Controller
             //     //array_push($katakana, $apiSpeechWord->word_katakana);
             // }
 
+            
+
             return response()->json(['words'=> $apiSpeechWords]);
         }
     }
@@ -845,69 +834,241 @@ class GraphController extends Controller
         return isset($seconds) ? $hours * 3600 + $minutes * 60 + $seconds : $hours * 60 + $minutes;
     }
 
-    function concatAudio()
-    {
-        $ffmpeg = \FFMpeg\FFMpeg::create([
-            'ffmpeg.binaries' => 'C:/ffmpeg/bin/ffmpeg.exe',
-            'fprobe.binaries' => 'C:/ffmpeg/bin/ffprobe.exe',
-        ]);
-        $audio = $ffmpeg->open(storage_path('app/sounds/335/0.mp3'));
-        $filter = new ConcatAudioFilter();
-        $filter->addFiles([
-            storage_path('app/sounds/335/1.mp3'),
-            storage_path('app/sounds/335/2.mp3')
-        ]);
-
-        $format = new FFMpeg\Format\Audio\Flac();
-        $format->on('progress', function ($audio, $format, $percentage) {
-            echo "$percentage % transcoded";
-        });
-        
-        $format
-            ->setAudioChannels(1)
-            ->setAudioKiloBitrate(32);
-        $audio->addFilter($filter);
-        $audio->save($format, storage_path('app/sounds/335/full.flac'));
-    }
-
-    function rmdir_recursive($dir) 
+    function deleteFolder($dir) 
     {
         foreach(scandir($dir) as $file) {
             if ('.' === $file || '..' === $file) continue;
-            if (is_dir("$dir/$file")) rmdir_recursive("$dir/$file");
+            if (is_dir("$dir/$file")) deleteFolder("$dir/$file");
             else unlink("$dir/$file");
         }
         rmdir($dir);
     }
 
-    function uploadObject($objectName, $source)
-    {
-        $projectId = 'kjs-speech-api-1506584214035';
-        $bucketName = 'kjs-lms';
-        //$objectName = '255.flac';
-        //$source = storage_path('app/sounds/255.flac');
-        putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-0488e705ae97.json'); //your path to file of cred
-
-        $storage = new StorageClient([
-            'projectId' => $projectId
-        ]);
-        $file = fopen($source, 'r');
-        $bucket = $storage->bucket($bucketName);
-        $object = $bucket->upload($file, [
-            'name' => $objectName,
-            'predefinedAcl' => 'PUBLICREAD'
-        ]);
-        //printf('Uploaded %s to gs://%s/%s' . PHP_EOL, basename($source), $bucketName, $objectName);
-    }
-
     public function getProgess() 
     {
-        return Response::json(array(Session::get('progress')));
+        return Response::json(array(Session::get('progress'), Session::get('contentNumber')));
     }
 
     function deleteData($contentNumber)
     {
         ApiSpeechWord::where('student_content_number', $contentNumber)->delete();
         ApiSpeechTranscript::where('student_content_number', $contentNumber)->delete();
+    }
+
+    function checkTranscription($contentNumber)
+    {
+        $transcriptData = ApiSpeechTranscript::where('student_content_number', $contentNumber)->get();
+        if(count($transcriptData)> 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    function convertAll($subjectNumber)
+    {
+        $contents = DB::select("SELECT DISTINCT d.school_contents_number
+            FROM
+                tbl_school_contents a
+            INNER JOIN tbl_school_subject_section b ON a.school_subject_section_number = b.school_subject_section_number
+            INNER JOIN tbl_school_subject c ON c.school_subject_number = b.school_subject_number
+            INNER JOIN log_school_contents_history_student d ON d.school_contents_number = a.school_contents_number
+            INNER JOIN log_school_contents_history_student_event e ON d.history_number = e.history_number
+            INNER JOIN tbl_trial_test_result f ON f.student_number = d.student_number
+            WHERE
+                c.top_subject_number = ?", [$subjectNumber]);
+
+        $formattedContents = array();
+        foreach($contents as $content)
+        { 
+            $contentNumber = $content->school_contents_number;
+            
+            $fileTypes = array("TBO-LN", "TBON");
+            $file = null;
+            foreach ($fileTypes as $fileType) 
+            {
+                if (File::exists(storage_path('app/contents/'.$contentNumber.'.'.$fileType)))
+                {
+                    $file = File::get(storage_path('app/contents/'.$contentNumber.'.'.$fileType));
+                    break;
+                }
+            }
+            
+    
+            if($file != null)
+            {
+                // Checking for directory existance
+                if (!File::exists(storage_path('app/sounds/'.$contentNumber))) 
+                {
+                    mkdir(storage_path('app/sounds/'.$contentNumber), 0777, true);
+                }
+                
+                // Writing MP3 
+                $tb = new Tb();
+                $play_data = $tb->setBinary($file)->getPlayData();
+                for ($i=0; $i < count($play_data['blocks']); $i++) 
+                {
+                    File::put(storage_path('app/sounds/'.$contentNumber.'/'.$i.'.mp3'), $play_data['blocks'][$i]['audio']);
+                }
+
+                // Reading MP3 from folder
+                $soundFileAbsolutePaths = glob(storage_path('app/sounds/'.$contentNumber.'/*.*'));
+                $tempPaths = array();
+                for ($i=1; $i < count($soundFileAbsolutePaths); $i++) 
+                { 
+                    array_push($tempPaths, $soundFileAbsolutePaths[$i]);
+                } 
+                
+                Debugbar::info($soundFileAbsolutePaths);
+                // Concating the Blocks MP3s and Converting to FLAC
+                if(count($soundFileAbsolutePaths) > 1)
+                {
+                    $ffmpeg = \FFMpeg\FFMpeg::create([
+                        'ffmpeg.binaries' => 'C:/ffmpeg/bin/ffmpeg.exe',
+                        'fprobe.binaries' => 'C:/ffmpeg/bin/ffprobe.exe',
+                    ]);
+                    $audio = $ffmpeg->open($soundFileAbsolutePaths[0]);
+                    $filter = new ConcatAudioFilter();
+                    $filter->addFiles($tempPaths);
+            
+                    $format = new FFMpeg\Format\Audio\Flac();
+                    $format->on('progress', function ($audio, $format, $percentage) {
+                        //echo "$percentage % transcoded";
+                    });
+                    
+                    $format
+                        ->setAudioChannels(1)
+                        ->setAudioKiloBitrate(32);
+                    $audio->addFilter($filter);
+                    $audio->save($format, storage_path('app/sounds/'.$contentNumber.'.flac'));
+
+                    $folderPath = storage_path('app/sounds/'.$contentNumber);
+                    $this->deleteFolder($folderPath);
+
+                    $this->uploadObject($contentNumber.'.flac', storage_path('app/sounds/'.$contentNumber.'.flac'));
+
+                }
+            }
+        }
+    }
+
+    function transcribeAll()
+    {
+        //ini_set('max_execution_time', 0);
+        $contents = DB::select("SELECT DISTINCT d.school_contents_number
+        FROM
+            tbl_school_contents a
+        INNER JOIN tbl_school_subject_section b ON a.school_subject_section_number = b.school_subject_section_number
+        INNER JOIN tbl_school_subject c ON c.school_subject_number = b.school_subject_number
+        INNER JOIN log_school_contents_history_student d ON d.school_contents_number = a.school_contents_number
+        INNER JOIN log_school_contents_history_student_event e ON d.history_number = e.history_number
+        INNER JOIN tbl_trial_test_result f ON f.student_number = d.student_number
+        WHERE
+            c.top_subject_number = ?", [1]);
+
+        $formattedContents = array();
+        foreach($contents as $content)
+        { 
+            $contentNumber = $content->school_contents_number;
+            if($this->checkTranscription($contentNumber))
+            {
+                continue;
+            }
+            
+
+            # Your Google Cloud Platform project ID
+            $projectId = 'kjs-speech-api-1506584214035';
+            putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-997d7db4b8f5.json'); //your path to file of cred
+
+            # Instantiates a client
+            $speech = new SpeechClient([
+                'projectId' => $projectId,
+                'languageCode' => 'ja-JP'
+            ]);
+
+            # The audio file's encoding and sample rate
+            $options = [
+                'encoding' => 'FLAC',
+                'sampleRateHertz' => 22050,
+                'enableWordTimeOffsets' => true,
+            ];
+
+            // Fetch the storage object
+            $fileName = $contentNumber;
+            $storage = new StorageClient();
+            $object = $storage->bucket('kjs-lms')->object($fileName.'.flac');
+
+            //Create the asyncronous recognize operation
+            $operation = $speech->beginRecognizeOperation(
+                $object,
+                $options
+            );
+
+            Session::put('progress', 1);
+            Session::put('contentNumber', $contentNumber);
+            Session::save();
+
+            // Wait for the operation to complete
+            $backoff = new ExponentialBackoff(100);
+            $backoff->execute(function () use ($operation, $contentNumber) {
+                //print(implode(",", $operation->reload()['metadata']). PHP_EOL);
+                if (array_key_exists('progressPercent', $operation->reload()['metadata'])) 
+                {
+                    Session::put('progress', $operation->reload()['metadata']['progressPercent']);
+                    Session::put('contentNumber', $contentNumber);
+                    Session::save();
+                }
+
+                $operation->reload();
+                if (!$operation->isComplete()) {
+                    throw new Exception('Job has not yet completed', 500);
+                }
+            });
+
+            // Print the results
+            if ($operation->isComplete()) {
+                $this->deleteData($fileName);
+                $results = $operation->results();
+
+                $transcribedData = array();
+                //dd($results);
+                foreach ($results as $result) 
+                {
+                    $alternative = $result->alternatives()[0];
+
+                    $apiSpeechTranscript = new ApiSpeechTranscript;
+                    $apiSpeechTranscript->student_content_number = $fileName;
+                    $apiSpeechTranscript->transcript = $alternative['transcript'];
+                    $apiSpeechTranscript->confidence = $alternative['confidence'];
+                    $apiSpeechTranscript->created_at = Carbon::now();
+                    $apiSpeechTranscript->save();
+                    $insertedId = $apiSpeechTranscript->transcript_number;
+
+                    foreach ($alternative['words'] as $words) 
+                    {
+                        $kanji = ''; 
+                        $katakana = '';
+                        if (strpos($words['word'], '|') !== false) 
+                        {
+                            $kanji = explode("|", $words['word'])[0];
+                            $katakana = explode("|", $words['word'])[1];
+                        }
+                        else
+                        {
+                            $kanji = $words['word'];
+                        }
+                        $apiSpeechWord = new ApiSpeechWord;
+                        $apiSpeechWord->student_content_number = $fileName;
+                        $apiSpeechWord->start_time = rtrim($words['startTime'], "s");
+                        $apiSpeechWord->end_time = rtrim($words['endTime'], "s"); 
+                        $apiSpeechWord->word_kanji = $kanji;
+                        $apiSpeechWord->word_katakana = $katakana;
+                        $apiSpeechWord->transcript_number = $insertedId;
+                        $apiSpeechWord->created_at = Carbon::now();
+                        $apiSpeechWord->save();
+                    }
+                }
+            }
+        }
     }
 }

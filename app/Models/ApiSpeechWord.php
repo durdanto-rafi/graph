@@ -13,7 +13,7 @@ class ApiSpeechWord extends Model
 
     protected $primaryKey = 'word_number';
 
-	public $timestamps = false;
+	public $timestamps = true;
 
     protected $fillable = [
         'student_content_number',

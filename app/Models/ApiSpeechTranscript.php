@@ -13,7 +13,7 @@ class ApiSpeechTranscript extends Model
 
     protected $primaryKey = 'transcript_number';
 
-	public $timestamps = false;
+	public $timestamps = true;
 
     protected $fillable = [
         'student_content_number',
