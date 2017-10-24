@@ -310,6 +310,29 @@
     <!-- /.modal-dialog -->
 </div>
 <!-- /.modal -->
+
+<!-- /.Image Modal -->
+<div class="modal fade" id="modalImage" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 id="modalHeader" class="modal-title  text-center"></h4>
+            </div>
+            <div class="modal-body">
+                <img id="pic" />
+            </div> 
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
 {!! Form::close() !!} 
 @endsection 
 @section('script') 
@@ -525,7 +548,8 @@
 
 
         //View Density chart initialization
-        var ctxViewDensity = document.getElementById("canViewDensity").getContext("2d");
+        var canvasViewDensity = document.getElementById('canViewDensity');
+        var ctxViewDensity = canvasViewDensity.getContext("2d");
         window.viewDensityChart = new Chart(ctxViewDensity, {
             type: 'bar',
             data: viewDensityData,
@@ -542,6 +566,14 @@
                 }
             }
         });
+
+        function chartClickEvent(event, array){
+            var active = window.viewDensityChart.getElementAtEvent(event);
+            console.log(active[0]._datasetIndex);
+        }
+
+        //canvasViewDensity.addEventListener('click', (event) => console.log(window.viewDensityChart.getBarsAtEvent(event)));
+        
 
         //Events chart initialization
         var ctxEvents = document.getElementById("canEvents").getContext("2d");
@@ -634,6 +666,8 @@
         var ctxAudio = canvas.getContext("2d");
         window.audioChart = new Chart(ctxAudio, options);
 
+       
+
         // Different Canvas
         var overlay = document.getElementById('overlay');
         var startIndex = 0;
@@ -646,23 +680,23 @@
             startY: 0
         };
         var drag = false;
-        canvas.addEventListener('pointerdown', evt => {
-            const points = window.audioChart.getElementsAtEventForMode(evt, 'index', {
+        canvas.addEventListener('pointerdown', function(event) {
+            const points = window.audioChart.getElementsAtEventForMode(event, 'index', {
                 intersect: false
             });
             startIndex = points[0]._index;
             const rect = canvas.getBoundingClientRect();
-            selectionRect.startX = evt.clientX - rect.left;
+            selectionRect.startX = event.clientX - rect.left;
             selectionRect.startY = window.audioChart.chartArea.top;
             drag = true;
             // save points[0]._index for filtering
         });
-        canvas.addEventListener('pointermove', evt => {
+        canvas.addEventListener('pointermove', function(event) {
 
             const rect = canvas.getBoundingClientRect();
             if (drag) {
                 const rect = canvas.getBoundingClientRect();
-                selectionRect.w = (evt.clientX - rect.left) - selectionRect.startX;
+                selectionRect.w = (event.clientX - rect.left) - selectionRect.startX;
                 selectionContext.globalAlpha = 0.5;
                 selectionContext.clearRect(0, 0, canvas.width, canvas.height);
                 selectionContext.fillRect(selectionRect.startX,
@@ -671,7 +705,7 @@
                     window.audioChart.chartArea.bottom - window.audioChart.chartArea.top);
             } else {
                 selectionContext.clearRect(0, 0, canvas.width, canvas.height);
-                var x = evt.clientX - rect.left;
+                var x = event.clientX - rect.left;
                 if (x > window.audioChart.chartArea.left) {
                     selectionContext.fillRect(x,
                         window.audioChart.chartArea.top,
@@ -680,8 +714,8 @@
                 }
             }
         });
-        canvas.addEventListener('pointerup', evt => {
-            const points = window.audioChart.getElementsAtEventForMode(evt, 'index', {
+        canvas.addEventListener('pointerup', function(event) {
+            const points = window.audioChart.getElementsAtEventForMode(event, 'index', {
                 intersect: false
             });
             drag = false;
@@ -694,6 +728,10 @@
                 data: { 'startTime': options.data.labels[startIndex], 'endTime': options.data.labels[points[0]._index], 'contentNumber': contentNumber, _token: token },
                 success: function (data) {
                     console.log(data);
+
+                    //drawText(800, 600, data.penData);
+
+                    // Speech to text
                     var sentenceFlag = null;
                     var sentences = new Array();
                     if(sentences.length > 0){
@@ -931,5 +969,350 @@
             }
         });
     });
+
+    function drawText( width, height, frames ) {
+        //frames = {
+        //    x : number;
+        //    y : number;
+        //    p : number;
+        //};
+        var ALL_CLEAR = 255 ;
+        var ERASER    =   0 ;
+        var FREE_HAND =   1 ;
+
+        var mode;
+        var lineWidth ;
+        var eraserWidth;
+        var eraserHeight;
+        var cache;
+        var canvas;
+        var ctx;
+
+
+        canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        ctx = canvas.getContext('2d');
+
+        cache = null;
+
+        frames.forEach( function( frame ){
+            switch (frame.p){
+                case 3 :
+                    mode = ALL_CLEAR;
+                    return;
+
+                case -5    : // フリーハンド 赤マジック細
+                case 5     : // フリーハンド 赤矢印細
+                case 505   : // フリーハンド 赤チョーク細
+                case -8    : // フリーハンド 青マジック細
+                case 8     : // フリーハンド 青矢印細
+                case 508   : // フリーハンド 青チョーク細
+                case -11   : // フリーハンド 黒マジック細
+                case 11    : // フリーハンド 黒矢印細
+                case 511   : // フリーハンド 黒チョーク細
+                case -14   : // フリーハンド 緑マジック細
+                case 14    : // フリーハンド 緑矢印細
+                case 514   : // フリーハンド 緑チョーク細
+                case -17   : // フリーハンド 黄マジック細
+                case 17    : // フリーハンド 黄矢印細
+                case 517   : // フリーハンド 黄チョーク細
+                case -20   : // フリーハンド 白マジック細
+                case 20    : // フリーハンド 白矢印細
+                case 520   : // フリーハンド 白チョーク細
+                case -23   : // フリーハンド 桃マジック細
+                case 23    : // フリーハンド 桃矢印細
+                case 523   : // フリーハンド 桃チョーク細
+                    mode = FREE_HAND;
+                    lineWidth =  1;
+                    break;
+
+                case -1    : // フリーハンド 赤マジック普通
+                case 1     : // フリーハンド 赤矢印普通
+                case 501   : // フリーハンド 赤チョーク普通
+                case -6    : // フリーハンド 青マジック普通
+                case 6     : // フリーハンド 青矢印普通
+                case 506   : // フリーハンド 青チョーク普通
+                case -9    : // フリーハンド 黒マジック普通
+                case 9     : // フリーハンド 黒矢印普通
+                case 509   : // フリーハンド 黒チョーク普通
+                case -12   : // フリーハンド 緑マジック普通
+                case 12    : // フリーハンド 緑矢印普通
+                case 512   : // フリーハンド 緑チョーク普通
+                case -15   : // フリーハンド 黄マジック普通
+                case 15    : // フリーハンド 黄矢印普通
+                case 515   : // フリーハンド 黄チョーク普通
+                case -18   : // フリーハンド 白マジック普通
+                case 18    : // フリーハンド 白矢印普通
+                case 518   : // フリーハンド 白チョーク普通
+                case -21   : // フリーハンド 桃マジック普通
+                case 21    : // フリーハンド 桃矢印普通
+                case 521   : // フリーハンド 桃チョーク普通
+                    mode = FREE_HAND;
+                    lineWidth =  2;
+                    break;
+
+                case -4    : // フリーハンド 赤マジック太
+                case 4     : // フリーハンド 赤矢印太
+                case 504   : // フリーハンド 赤チョーク太
+                case -7    : // フリーハンド 青マジック太
+                case 7     : // フリーハンド 青矢印太
+                case 507   : // フリーハンド 青チョーク太
+                case -10   : // フリーハンド 黒マジック太
+                case 10    : // フリーハンド 黒矢印太
+                case 510   : // フリーハンド 黒チョーク太
+                case -13   : // フリーハンド 緑マジック太
+                case 13    : // フリーハンド 緑矢印太
+                case 513   : // フリーハンド 緑チョーク太
+                case -16   : // フリーハンド 黄マジック太
+                case 16    : // フリーハンド 黄矢印太
+                case 516   : // フリーハンド 黄チョーク太
+                case -19   : // フリーハンド 白マジック太
+                case 19    : // フリーハンド 白矢印太
+                case 519   : // フリーハンド 白チョーク太
+                case -22   : // フリーハンド 桃マジック太
+                case 22    : // フリーハンド 桃矢印太
+                case 522   : // フリーハンド 桃チョーク太
+                    mode = FREE_HAND;
+                    lineWidth =  4;
+                    break;
+
+                case 2201  : // 消しゴム大 カーソルのみ
+                case 200   : // 消しゴム大 消す
+                case 2111  : // 黒板消し大 カーソルのみ
+                case 2101  : // 黒板消し大 消す
+                    mode = ERASER;
+                    eraserWidth = 62;
+                    eraserHeight = 38;
+                    break;
+
+                case 2200  : // 消しゴム小 カーソルのみ
+                case 2     : // 消しゴム小 消す
+                case 2110  : // 黒板消し小 カーソルのみ
+                case 2100  : // 黒板消し小 消す
+                    mode = ERASER;
+                    eraserWidth = 31;
+                    eraserHeight = 19;
+                    break;
+
+                case 3202  : // 極小消しゴム太 カーソルのみ
+                case 3102  : // 極小消しゴム大 消す
+                    mode = ERASER;
+                    eraserWidth  = 16;
+                    eraserHeight = 16;
+                    break;
+
+                case 3201  : // 極小消しゴム中 カーソルのみ
+                case 3101  : // 極小消しゴム中 消す
+                    mode = ERASER;
+                    eraserWidth  = 8;
+                    eraserHeight = 8;
+                    break;
+
+                case 3200  : // 極小消しゴム小 カーソルのみ
+                case 3100  : // 極小消しゴム小 消す
+                    mode = ERASER;
+                    eraserWidth  = 4;
+                    eraserHeight = 4;
+                    break;
+
+                default :
+                    mode = null;
+                    cache = null;
+                    return;
+            }
+
+            switch (mode){
+                case ALL_CLEAR :{
+                    ctx.clearRect( 0, 0, canvas.width, canvas.height);
+                    cache = null;
+                } break;
+
+                case FREE_HAND : {
+                    if ( null !== cache ){
+                        if ( cache.p === frame.p ){
+                            ctx.beginPath();
+                            ctx.lineWidth = lineWidth;
+                            ctx.moveTo(cache.x, cache.y);
+                            ctx.lineTo(frame.x, frame.y);
+                            ctx.stroke();
+                        }
+                    }
+                    cache = frame;
+                } break;
+
+                case ERASER : {
+                    if ( null !== cache ){
+                        if ( cache.p === frame.p ){
+                            switch( true ){
+                                case ( cache.x === frame.x && cache.y === frame.y ) : {
+                                    ctx.clearRect( frame.x, frame.y, eraserWidth, eraserHeight );
+                                } break;
+
+                                //動いた時
+                                case ( cache.x === frame.x && cache.y > frame.y ) : {
+                                    // 上に動いた時
+                                    ctx.clearRect( frame.x, frame.y, eraserWidth, cache.y - frame.y + eraserHeight );
+                                    break;
+                                }
+
+                                case ( cache.x < frame.x && cache.y > frame.y ) : {
+                                    // 右上に動いた時
+                                    ctx.save();
+
+                                    ctx.beginPath();
+
+                                    ctx.moveTo( frame.x, frame.y );
+                                    ctx.lineTo( frame.x + eraserWidth, frame.y );
+                                    ctx.lineTo( frame.x + eraserWidth, frame.y + eraserHeight );
+                                    ctx.lineTo( cache.x + eraserWidth, cache.y + eraserHeight );
+                                    ctx.lineTo( cache.x, cache.y + eraserHeight );
+                                    ctx.lineTo( cache.x, cache.y );
+                                    ctx.closePath();
+
+                                    ctx.clip();
+
+                                    ctx.clearRect(
+                                        cache.x,
+                                        frame.y,
+                                        frame.x - cache.x + eraserWidth,
+                                        cache.y - frame.y + eraserHeight
+                                    );
+
+                                    ctx.restore();
+                                    break;
+                                }
+
+                                case ( cache.x < frame.x && cache.y === frame.y ) : {
+                                    // 右に動いた時
+                                    ctx.clearRect(
+                                        cache.x,
+                                        cache.y,
+                                        frame.x - cache.x + eraserWidth,
+                                        eraserHeight
+                                    );
+                                    break;
+                                }
+
+                                case ( cache.x < frame.x && cache.y < frame.y ) : {
+                                    // 右下に動いた時
+                                    ctx.save();
+                                    ctx.beginPath();
+
+                                    ctx.moveTo( cache.x, cache.y );
+                                    ctx.lineTo( cache.x + eraserWidth, cache.y );
+                                    ctx.lineTo( frame.x + eraserWidth, frame.y );
+                                    ctx.lineTo( frame.x + eraserWidth, frame.y + eraserHeight );
+                                    ctx.lineTo( frame.x, frame.y + eraserHeight );
+                                    ctx.lineTo( cache.x, cache.y + eraserHeight );
+                                    ctx.closePath();
+
+                                    ctx.clip();
+
+                                    ctx.clearRect(
+                                        cache.x,
+                                        cache.y,
+                                        frame.x - cache.x + eraserWidth,
+                                        frame.y - cache.y + eraserHeight
+                                    );
+
+                                    ctx.restore();
+                                    break;
+                                }
+
+                                case ( cache.x === frame.x && cache.y < frame.y ) : {
+                                    // 下に動いた時
+                                    ctx.clearRect(
+                                        cache.x,
+                                        cache.y,
+                                        eraserWidth,
+                                        frame.y - cache.y + eraserHeight
+                                    );
+                                    break;
+                                }
+
+                                case ( cache.x > frame.x && cache.y < frame.y ) : {
+                                    // 左下に動いた時
+                                    ctx.save();
+                                    ctx.beginPath();
+
+                                    ctx.moveTo( cache.x, cache.y );
+                                    ctx.lineTo( cache.x + eraserWidth, cache.y );
+                                    ctx.lineTo( cache.x + eraserWidth, cache.y + eraserHeight );
+                                    ctx.lineTo( frame.x + eraserWidth, frame.y + eraserHeight );
+                                    ctx.lineTo( frame.x, frame.y + eraserHeight );
+                                    ctx.lineTo( frame.x, frame.y );
+                                    ctx.closePath();
+
+                                    ctx.clip();
+
+                                    ctx.clearRect(
+                                        frame.x,
+                                        cache.y,
+                                        cache.x - frame.x + eraserWidth,
+                                        frame.y - cache.y + eraserHeight
+                                    );
+
+                                    ctx.restore();
+                                    break;
+                                }
+
+                                case ( cache.x > frame.x && cache.y === frame.y ) : {
+                                    // 左に動いた時
+                                    ctx.clearRect(
+                                        frame.x,
+                                        frame.y,
+                                        cache.x - frame.x + eraserWidth,
+                                        eraserHeight
+                                    );
+                                    break;
+                                }
+
+                                case ( cache.x > frame.x && cache.y > frame.y ) : {
+                                    // 左上に動いた時
+                                    ctx.save();
+                                    ctx.beginPath();
+
+                                    ctx.moveTo( frame.x, frame.y );
+                                    ctx.lineTo( frame.x + eraserWidth, frame.y );
+                                    ctx.lineTo( cache.x + eraserWidth, cache.y );
+                                    ctx.lineTo( cache.x + eraserWidth, cache.y + eraserHeight );
+                                    ctx.lineTo( cache.x, cache.y + eraserHeight );
+                                    ctx.lineTo( frame.x, frame.y + eraserHeight );
+                                    ctx.closePath();
+
+                                    ctx.clip();
+
+                                    ctx.clearRect(
+                                        frame.x,
+                                        frame.y,
+                                        cache.x - frame.x + eraserWidth,
+                                        cache.y - frame.y + eraserHeight
+                                    );
+
+                                    ctx.restore();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    cache = frame;
+                } break;
+            }
+        } );
+
+        var img = document.getElementById('pic');
+        img.src = canvas.toDataURL();
+        img.width = width;
+        img.height = height;
+
+        img.download = 'Download.jpg';
+        document.body.appendChild(img);
+        img.click();
+        //$('#modalImage').modal('show');
+
+        //document.body.appendChild(img);
+
+    }
 
 </script> @stop

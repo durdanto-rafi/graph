@@ -208,6 +208,9 @@ class GraphController extends Controller
             $blocks = $this->getBlockMarks($request->contentNumber);
             $this->processData($logs, $blocks);
 
+            Session::put('blocks', $blocks);
+            Session::save();
+
     		return response()->json(['contentInfo'=> $this->contentInfo]);
     	}
     }
@@ -1071,4 +1074,82 @@ class GraphController extends Controller
             }
         }
     }
+
+    function convertImageToText(Request $request)
+    {
+        if($request->ajax())
+        {
+            $message = 'error';
+            $arr = array();
+            // Reading Tb content
+            try 
+            {
+                $fileTypes = array("TBO-LN", "TBON");
+                $file = null;
+                foreach ($fileTypes as $fileType) 
+                {
+                    if (File::exists(storage_path('app/contents/'.$request->contentNumber.'.'.$fileType)))
+                    {
+                        $file = File::get(storage_path('app/contents/'.$request->contentNumber.'.'.$fileType));
+                        break;
+                    }
+                }
+                
+        
+                if($file != null)
+                {
+                    $tb = new Tb();
+                    $play_data = $tb->setBinary($file)->getPlayData();
+
+                    $selectStart = $this->convertToSecond($request->startTime);
+                    $selectEnd = $this->convertToSecond($request->endTime);
+
+                    $blocks = Session::get('blocks');
+                    //dd(count($blocks));
+                    for ($i=0; $i < count($blocks) ; $i++) 
+                    { 
+                        $blockStart = floor($blocks[$i]->first_frame/100);
+                        $blockEnd = floor($blocks[$i]->final_frame/100);
+
+                        
+                        
+                        if(($selectStart < $blockEnd) && ($selectEnd > $blockEnd))
+                        {
+                            //print("intersect");
+                            $message = "intersect";
+                        }
+
+                        if(($blockStart < $selectStart) && ($selectEnd < $blockEnd))
+                        {
+                            $blockInsideSelectStart = $selectStart - $blockStart;
+                            $blockInsideSelectEnd = $selectEnd - $blockStart;
+                            $message = 'success';
+                            //print($i);
+                            $cutted_data = substr($play_data['blocks'][$i]['pen'], 1200 * $blockInsideSelectStart, 1200 * ($blockInsideSelectEnd - $blockInsideSelectStart));
+                            for ($j=0, $max = strlen($cutted_data); $j < $max; $j += 12) 
+                            { 
+                                $p = unpack('V', substr($cutted_data, $j + 8, 4))[1];
+                                if( $p > 2147483647 ){ $p -= 4294967296; }
+                                array_push($arr, [
+                                    'x' => unpack('V', substr($cutted_data, $j + 0, 4))[1],
+                                    'y' => unpack('V', substr($cutted_data, $j + 4, 4))[1],
+                                    'p' => $p
+                                ]);
+                            }
+                        }
+                    }
+                    
+                   
+                }
+                
+            } 
+            catch (\Exception $e) 
+            {
+                $message =  $e->getMessage();
+            }
+    
+            return response()->json(['message'=> $message, 'penData'=> $arr]);
+        }
+    }
+
 }
