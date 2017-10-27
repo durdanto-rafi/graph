@@ -188,7 +188,7 @@
                     <a href="#password" data-toggle="tab">EVent Density / Event Count * 100</a>
                 </li>
                 <li class="active">
-                    <a href="#audio" data-toggle="tab">Audio</a>
+                    <a href="#audio" data-toggle="tab">AI</a>
                 </li>
             </ul>
             <div class="tab-content">
@@ -215,8 +215,18 @@
                         <canvas id="overlay"></canvas>
                         <canvas id="canAudio"></canvas>
                         <div class="text-center">
-                            <button id="btnTranscribe" class="btn btn-primary btn-xs" onclick="return false;"> Transcribe </button>
-                            <button id="btnConvert" class="btn btn-primary btn-xs" onclick="return false;"> Convert </button>
+                            {{--  <button id="btnTranscribe" class="btn btn-primary btn-xs" onclick="return false;"> Transcribe </button>
+                            <button id="btnConvert" class="btn btn-primary btn-xs" onclick="return false;"> Convert </button>  --}}
+                            <div class="col-xs-12 col-sm-12 col-md-12">
+                                <div class="form-group">
+                                    Speech
+                                    <label class="input-toggle">
+                                        {{ Form::checkbox('switch', 1, null, array('id'=>'swFunction') ) }}
+                                        <span></span> 
+                                    </label> 
+                                    Image
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -322,7 +332,7 @@
                 <h4 id="modalHeader" class="modal-title  text-center"></h4>
             </div>
             <div class="modal-body">
-                <img id="pic" />
+                <img class="img-responsive pad" id="pic" />
             </div> 
             <div class="modal-footer">
                 <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
@@ -662,8 +672,8 @@
         }
 
         //Audio chart initialization
-        var canvas = document.getElementById('canAudio');
-        var ctxAudio = canvas.getContext("2d");
+        var canAudio = document.getElementById('canAudio');
+        var ctxAudio = canAudio.getContext("2d");
         window.audioChart = new Chart(ctxAudio, options);
 
        
@@ -671,8 +681,8 @@
         // Different Canvas
         var overlay = document.getElementById('overlay');
         var startIndex = 0;
-        overlay.width = canvas.width;
-        overlay.height = canvas.height;
+        overlay.width = canAudio.width;
+        overlay.height = canAudio.height;
         var selectionContext = overlay.getContext('2d');
         var selectionRect = {
             w: 0,
@@ -680,31 +690,31 @@
             startY: 0
         };
         var drag = false;
-        canvas.addEventListener('pointerdown', function(event) {
+        canAudio.addEventListener('pointerdown', function(event) {
             const points = window.audioChart.getElementsAtEventForMode(event, 'index', {
                 intersect: false
             });
             startIndex = points[0]._index;
-            const rect = canvas.getBoundingClientRect();
+            const rect = canAudio.getBoundingClientRect();
             selectionRect.startX = event.clientX - rect.left;
             selectionRect.startY = window.audioChart.chartArea.top;
             drag = true;
             // save points[0]._index for filtering
         });
-        canvas.addEventListener('pointermove', function(event) {
+        canAudio.addEventListener('pointermove', function(event) {
 
-            const rect = canvas.getBoundingClientRect();
+            const rect = canAudio.getBoundingClientRect();
             if (drag) {
-                const rect = canvas.getBoundingClientRect();
+                const rect = canAudio.getBoundingClientRect();
                 selectionRect.w = (event.clientX - rect.left) - selectionRect.startX;
                 selectionContext.globalAlpha = 0.5;
-                selectionContext.clearRect(0, 0, canvas.width, canvas.height);
+                selectionContext.clearRect(0, 0, canAudio.width, canAudio.height);
                 selectionContext.fillRect(selectionRect.startX,
                     selectionRect.startY,
                     selectionRect.w,
                     window.audioChart.chartArea.bottom - window.audioChart.chartArea.top);
             } else {
-                selectionContext.clearRect(0, 0, canvas.width, canvas.height);
+                selectionContext.clearRect(0, 0, canAudio.width, canAudio.height);
                 var x = event.clientX - rect.left;
                 if (x > window.audioChart.chartArea.left) {
                     selectionContext.fillRect(x,
@@ -714,7 +724,7 @@
                 }
             }
         });
-        canvas.addEventListener('pointerup', function(event) {
+        canAudio.addEventListener('pointerup', function(event) {
             const points = window.audioChart.getElementsAtEventForMode(event, 'index', {
                 intersect: false
             });
@@ -722,16 +732,21 @@
             //console.log('implement filter between ' + options.data.labels[startIndex] + ' and ' + options.data.labels[points[0]._index]);
             var token = $("input[name='_token']").val();
             var contentNumber = $("#ddlContentNumber").val();
+            var swFunction = document.getElementById('swFunction').checked;
+            var route = swFunction ? "{{ route('image-to-text') }}" : "{{ route('speech-to-text') }}";
+
             $.ajax({
-                url: "{{ route('speech-to-text') }}",
+                url: route,
                 method: 'POST',
                 data: { 'startTime': options.data.labels[startIndex], 'endTime': options.data.labels[points[0]._index], 'contentNumber': contentNumber, _token: token },
                 success: function (data) {
-                    console.log(data);
-
-                    //drawText(800, 600, data.penData);
-
-                    // Speech to text
+                    //console.log(document.getElementById('swFunction').checked);
+                
+                    if(swFunction){
+                        drawText(800, 600, data.penData);
+                    }
+                    else{
+                        // Speech to text
                     var sentenceFlag = null;
                     var sentences = new Array();
                     if(sentences.length > 0){
@@ -751,9 +766,10 @@
                     });
                     $('#transcribedData').html(sentences.join("。"));
                     $('.overlay').hide();
-                    $('#modalHeader').html("Transcribed audio with Google AI (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
+                    $('#modalHeader').html("Transcribed audio with B&M AI Engine (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
                     //$('#transcribedData').html(data.kanji.join(" "));
                     $('#modalTranscribe').modal('show');
+                    }
                 }
             });
         });
@@ -1301,15 +1317,29 @@
             }
         } );
 
+        $('#modalImage').modal('show');
         var img = document.getElementById('pic');
-        img.src = canvas.toDataURL();
-        img.width = width;
-        img.height = height;
+        var modalWidth = $("#modalImage").width();
+        var modalHeight = $("#modalImage").height();
 
-        img.download = 'Download.jpg';
+        {{--  var resizedCanvas = document.createElement("canvas");
+        var resizedContext = resizedCanvas.getContext("2d");
+
+        resizedCanvas.height = modalHeight;
+        resizedCanvas.width = modalWidth;
+        resizedContext.drawImage(canvas, 0, 0, modalWidth, modalHeight);
+        img.src = resizedCanvas.toDataURL();
+
+        console.log(resizedCanvas.width, modalWidth);
+        console.log(resizedCanvas.height, modalHeight);
+        img.width = modalWidth;
+        img.height = modalHeight;  --}}
+
+        img.src = canvas.toDataURL();
+        {{--  img.download = 'Download.jpg';
         document.body.appendChild(img);
-        img.click();
-        //$('#modalImage').modal('show');
+        img.click();  --}}
+        
 
         //document.body.appendChild(img);
 

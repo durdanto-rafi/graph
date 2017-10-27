@@ -8,8 +8,8 @@ label.input-toggle {
 label.input-toggle>span {
   display: inline-block;
   position: relative;
-  background-image: -webkit-linear-gradient(left, #848484 0%, #848484 50%, #CD5C5C 50%, #CD5C5C 100%);
-  background-image: linear-gradient(to right, #848484 0%, #848484 50%, #CD5C5C 50%, #CD5C5C 100%);
+  background-image: -webkit-linear-gradient(left, #9FA8DA 0%, #9FA8DA 50%, #9FA8DA 50%, #9FA8DA 100%);
+  background-image: linear-gradient(to right, #9FA8DA 0%, #9FA8DA 50%, #9FA8DA 50%, #9FA8DA 100%);
   background-size: 64px 14px;
   background-position: 0%;
   border-radius: 32px;
@@ -30,7 +30,7 @@ label.input-toggle>span:after {
   position: absolute;
   width: 18px;
   height: 18px;
-  background: #F1F1F1;
+  background: #3F51B5;
   -webkit-align-self: center;
   -ms-flex-item-align: center;
   align-self: center;
@@ -48,7 +48,7 @@ label.input-toggle>span:after {
 
 label.input-toggle>input:checked+span:after {
   left: calc(100% - 18px);
-  background-color: #FF0000;
+  background-color: #3F51B5;
 }
 
 label.input-toggle>span:active:after {
@@ -122,6 +122,16 @@ canvas {
 }
 
 #overlay {
+  height:250px !important;
+  position:absolute;
+  pointer-events:none;
+}
+
+#canImage {
+  height:250px !important;
+}
+
+#canImageOverlay {
   height:250px !important;
   position:absolute;
   pointer-events:none;
