@@ -23,3 +23,4 @@ Route::post('convert', ['as'=>'convert','uses'=>'GraphController@convertToAudio'
 Route::post('speech-to-text', ['as'=>'speech-to-text','uses'=>'GraphController@speechToText']);
 Route::get('progress', ['as'=>'progress','uses'=>'GraphController@getProgess']);
 Route::post('image-to-text', ['as'=>'image-to-text','uses'=>'GraphController@convertImageToText']);
+Route::post('ocr', ['as'=>'ocr','uses'=>'GraphController@detectTextFromImage']);

@@ -22,6 +22,7 @@ use Vendor\autoload;
 use Google\Cloud\Speech\SpeechClient;
 use Google\Cloud\Storage\StorageClient;
 use Google\Cloud\Core\ExponentialBackoff;
+use Google\Cloud\Vision\VisionClient;
 
 use App\Libraries\Tb\TbEntry;
 use App\Libraries\Tb\TbMap;
@@ -1150,6 +1151,36 @@ class GraphController extends Controller
     
             return response()->json(['message'=> $message, 'penData'=> $arr]);
         }
+    }
+
+    function detectTextFromImage(Request $request)
+    {
+        $image = str_replace('data:image/png;base64,', '', $request->ocrData);
+        $image = str_replace(' ', '+', $image);
+        $image = base64_decode($image);
+        File::put(storage_path('app/img.png'), $image);
+        //dd($request->ocrData);
+        //$this->transcribeAll();
+        # Your Google Cloud Platform project ID
+        $projectId = 'kjs-speech-api-1506584214035';
+        putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-997d7db4b8f5.json'); //your path to file of cred
+
+
+        $vision = new VisionClient([
+            'projectId' => $projectId
+        ]);
+        $image = $vision->image(file_get_contents(storage_path('app/img.png')), ['TEXT_DETECTION']);
+        $result = $vision->annotate($image);
+
+        //print(implode(",",  $result->text()));
+        //print("Texts:\n");
+        $data = array();
+        foreach ((array) $result->text() as $text) {
+            array_push($data, $text->description());
+        }
+        //dd($result);
+
+        return response()->json(['text'=> $data]);
     }
 
 }

@@ -224,7 +224,7 @@
                                         {{ Form::checkbox('switch', 1, null, array('id'=>'swFunction') ) }}
                                         <span></span> 
                                     </label> 
-                                    Image
+                                    Handwriting
                                 </div>
                             </div>
                         </div>
@@ -336,6 +336,7 @@
             </div> 
             <div class="modal-footer">
                 <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-default pull-right" id="btnOCR">Try OCR</button>
             </div>
         </div>
         <!-- /.modal-content -->
@@ -548,6 +549,7 @@
         //drawEventsRatio(0,0,0);
     }
 
+    var ocrData;
     window.onload = function () {
         var startDate = new Date("2015-01-01");
         $("#txtFromDateInput").datepicker('setDate', startDate);
@@ -621,7 +623,6 @@
                             beginAtZero: true,
                             max: 100
                         }
-
                     }]
                 }
             }
@@ -743,32 +744,35 @@
                     //console.log(document.getElementById('swFunction').checked);
                 
                     if(swFunction){
-                        drawText(800, 600, data.penData);
+                        ocrData =  drawText(1600, 900, data.penData);
+                        var img = document.getElementById('pic');
+                        img.src = ocrData;
+                        $('#modalImage').modal('show');
                     }
                     else{
                         // Speech to text
-                    var sentenceFlag = null;
-                    var sentences = new Array();
-                    if(sentences.length > 0){
-                        sentenceFlag = data.words[0].transcript_number;
-                    }
-                    var sentenceWord = '';
-                    data.words.forEach(function (word) {
-                        if(sentenceFlag === word.transcript_number){
-                            sentenceWord += word.word_kanji + ' ';
+                        var sentenceFlag = null;
+                        var sentences = new Array();
+                        if(sentences.length > 0){
+                            sentenceFlag = data.words[0].transcript_number;
                         }
-                        else{
-                            sentences.push(sentenceWord);
-                            sentenceWord = '';
-                            sentenceFlag = word.transcript_number;
-                        }
-                        
-                    });
-                    $('#transcribedData').html(sentences.join("。"));
-                    $('.overlay').hide();
-                    $('#modalHeader').html("Transcribed audio with B&M AI Engine (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
-                    //$('#transcribedData').html(data.kanji.join(" "));
-                    $('#modalTranscribe').modal('show');
+                        var sentenceWord = '';
+                        data.words.forEach(function (word) {
+                            if(sentenceFlag === word.transcript_number){
+                                sentenceWord += word.word_kanji + ' ';
+                            }
+                            else{
+                                sentences.push(sentenceWord);
+                                sentenceWord = '';
+                                sentenceFlag = word.transcript_number;
+                            }
+                            
+                        });
+                        $('#transcribedData').html(sentences.join("。"));
+                        $('.overlay').hide();
+                        $('#modalHeader').html("Transcribed audio with B&M AI Engine (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
+                        //$('#transcribedData').html(data.kanji.join(" "));
+                        $('#modalTranscribe').modal('show');
                     }
                 }
             });
@@ -985,6 +989,7 @@
             }
         });
     });
+
 
     function drawText( width, height, frames ) {
         //frames = {
@@ -1317,32 +1322,21 @@
             }
         } );
 
-        $('#modalImage').modal('show');
-        var img = document.getElementById('pic');
-        var modalWidth = $("#modalImage").width();
-        var modalHeight = $("#modalImage").height();
-
-        {{--  var resizedCanvas = document.createElement("canvas");
-        var resizedContext = resizedCanvas.getContext("2d");
-
-        resizedCanvas.height = modalHeight;
-        resizedCanvas.width = modalWidth;
-        resizedContext.drawImage(canvas, 0, 0, modalWidth, modalHeight);
-        img.src = resizedCanvas.toDataURL();
-
-        console.log(resizedCanvas.width, modalWidth);
-        console.log(resizedCanvas.height, modalHeight);
-        img.width = modalWidth;
-        img.height = modalHeight;  --}}
-
-        img.src = canvas.toDataURL();
-        {{--  img.download = 'Download.jpg';
-        document.body.appendChild(img);
-        img.click();  --}}
-        
-
-        //document.body.appendChild(img);
-
+        return canvas.toDataURL('image/png');
     }
+
+    $('#btnOCR').click(function () {
+        var token = $("input[name='_token']").val();
+        $.ajax({
+            url: "{{ route('ocr') }}",
+            method: 'POST',
+            data: { _token: token, ocrData: ocrData },
+            success: function (data) {
+                console.log(data);
+            }
+        });
+    });
+
+
 
 </script> @stop
