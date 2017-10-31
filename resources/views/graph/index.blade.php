@@ -277,7 +277,7 @@
                 <h4 id="modalHeader" class="modal-title  text-center"></h4>
             </div>
             <div class="modal-body">
-                <p id='transcribedData'></p>
+                {{--  <p id='transcribedData'></p>  --}}
             </div> 
             <div class="modal-footer">
                 <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
@@ -301,6 +301,7 @@
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body">
+                           
                             <p id='progressData'></p>
                             <div class="progress progress-sm active">
                                 <div id='progressBar' class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="20" aria-valuemin="0"
@@ -320,30 +321,34 @@
     <!-- /.modal-dialog -->
 </div>
 <!-- /.modal -->
-
-<!-- /.Image Modal -->
-<div class="modal fade" id="modalImage" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade modal-fullscreen" id="modalImage" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <span aria-hidden="true">&times;</span>
                 </button>
-                <h4 id="modalHeader" class="modal-title  text-center"></h4>
+                <h4 id="modalOCRHeader" class="modal-title  text-center"></h4>
             </div>
+
             <div class="modal-body">
-                <img class="img-responsive pad" id="pic" />
-            </div> 
+                <div class="row">
+                    <div  class="col-xs-8 col-sm-8 col-md-8">
+                        <img class="img-responsive pad" id="pic" />
+                    </div>
+                    <div  class="col-xs-4 col-sm-4 col-md-4">
+                        <p id='transcribedData'></p>
+                    </div>
+                </div>
+            </div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <p class="pull-left" id="parOCRText"></p>
                 <button type="button" class="btn btn-default pull-right" id="btnOCR">Try OCR</button>
             </div>
-        </div>
-        <!-- /.modal-content -->
-    </div>
-    <!-- /.modal-dialog -->
-</div>
-<!-- /.modal -->
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 {!! Form::close() !!} 
 @endsection 
 @section('script') 
@@ -735,6 +740,7 @@
             var contentNumber = $("#ddlContentNumber").val();
             var swFunction = document.getElementById('swFunction').checked;
             var route = swFunction ? "{{ route('image-to-text') }}" : "{{ route('speech-to-text') }}";
+            $('#parOCRText').html("");
 
             $.ajax({
                 url: route,
@@ -744,9 +750,32 @@
                     //console.log(document.getElementById('swFunction').checked);
                 
                     if(swFunction){
+                        // Speech to text
+                        var sentenceFlag = null;
+                        var sentences = new Array();
+                        if(sentences.length > 0){
+                            sentenceFlag = data.words[0].transcript_number;
+                        }
+                        var sentenceWord = '';
+                        data.speechData.forEach(function (word) {
+                            if(sentenceFlag === word.transcript_number){
+                                sentenceWord += word.word_kanji + ' ';
+                            }
+                            else{
+                                sentences.push(sentenceWord);
+                                sentenceWord = '';
+                                sentenceFlag = word.transcript_number;
+                            }
+                            
+                        });
+                        console.log(sentences.join("。"));
+                        $('#transcribedData').html(sentences.join("。"));
+
+                        // Handwriting
                         ocrData =  drawText(1600, 900, data.penData);
                         var img = document.getElementById('pic');
                         img.src = ocrData;
+                        $('#modalOCRHeader').html("OCR with B&M AI Engine (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
                         $('#modalImage').modal('show');
                     }
                     else{
@@ -1327,12 +1356,14 @@
 
     $('#btnOCR').click(function () {
         var token = $("input[name='_token']").val();
+         $('#parOCRText').html("Connecting to server...");
         $.ajax({
             url: "{{ route('ocr') }}",
             method: 'POST',
             data: { _token: token, ocrData: ocrData },
             success: function (data) {
                 console.log(data);
+                $('#parOCRText').html(data.ocrText.join(", "));
             }
         });
     });

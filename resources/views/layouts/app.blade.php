@@ -124,6 +124,9 @@
     <script src="{{ asset('/plugins/chartjs-v2/Chart.Zoom.min.js') }}"></script>
     <!-- Chart bundle -->
     <script src="{{ asset('/plugins/chartjs-v2/utils.js') }}"></script>
+    <!-- Full Screne Modal -->
+    <script src="{{ asset('/js/bs-modal-fullscreen.js') }}"></script>
+    
 @show
 </html>
 

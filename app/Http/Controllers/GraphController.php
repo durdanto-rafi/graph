@@ -1148,19 +1148,32 @@ class GraphController extends Controller
             {
                 $message =  $e->getMessage();
             }
+
+            // Getting Speech Text from Database
+            $startTime = $this->convertToSecond($request->startTime);
+            $endTime = $this->convertToSecond($request->endTime);
+
+            $kanji = array();
+            $katakana = array();
+            if($startTime > $endTime)
+            {
+                list($startTime, $endTime) = array($startTime, $endTime);
+            }
+
+            $apiSpeechWords = ApiSpeechWord::where('start_time', '>=', $startTime)->where('start_time', '<=', $endTime)->where('student_content_number', $request->contentNumber)->get();
     
-            return response()->json(['message'=> $message, 'penData'=> $arr]);
+            return response()->json(['message'=> $message, 'penData'=> $arr, 'speechData' => $apiSpeechWords]);
         }
     }
 
     function detectTextFromImage(Request $request)
     {
+        // Getting Handwriting Text from Database
         $image = str_replace('data:image/png;base64,', '', $request->ocrData);
         $image = str_replace(' ', '+', $image);
         $image = base64_decode($image);
         File::put(storage_path('app/img.png'), $image);
-        //dd($request->ocrData);
-        //$this->transcribeAll();
+        
         # Your Google Cloud Platform project ID
         $projectId = 'kjs-speech-api-1506584214035';
         putenv('GOOGLE_APPLICATION_CREDENTIALS='.__DIR__ .'/kjs-speech-api-997d7db4b8f5.json'); //your path to file of cred
@@ -1172,15 +1185,13 @@ class GraphController extends Controller
         $image = $vision->image(file_get_contents(storage_path('app/img.png')), ['TEXT_DETECTION']);
         $result = $vision->annotate($image);
 
-        //print(implode(",",  $result->text()));
-        //print("Texts:\n");
         $data = array();
         foreach ((array) $result->text() as $text) {
             array_push($data, $text->description());
         }
         //dd($result);
 
-        return response()->json(['text'=> $data]);
+        return response()->json(['ocrText'=> $data]);
     }
 
 }
