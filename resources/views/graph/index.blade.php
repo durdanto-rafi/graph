@@ -45,6 +45,8 @@
             <label>Growth</label>
             <div class="form-group">
                 <label>
+                    <input name="growth" type="radio" value="4" id="chkAll" /> All
+                    <br/>
                     <input name="growth" type="radio" value="1" id="chkOver" /> Over 3
                     <br/>
                     <input name="growth" type="radio" value="2" id="chkLittle" /> Change little
@@ -217,7 +219,7 @@
                         <div class="text-center">
                             {{--  <button id="btnTranscribe" class="btn btn-primary btn-xs" onclick="return false;"> Transcribe </button>
                             <button id="btnConvert" class="btn btn-primary btn-xs" onclick="return false;"> Convert </button>  --}}
-                            <div class="col-xs-12 col-sm-12 col-md-12">
+                            {{--  <div class="col-xs-12 col-sm-12 col-md-12">
                                 <div class="form-group">
                                     Speech
                                     <label class="input-toggle">
@@ -226,7 +228,7 @@
                                     </label> 
                                     Handwriting
                                 </div>
-                            </div>
+                            </div>  --}}
                         </div>
                     </div>
                 </div>
@@ -334,9 +336,11 @@
             <div class="modal-body">
                 <div class="row">
                     <div  class="col-xs-8 col-sm-8 col-md-8">
+                        <h4 class="text-center">Drawing</h4>
                         <img class="img-responsive pad" id="pic" />
                     </div>
                     <div  class="col-xs-4 col-sm-4 col-md-4">
+                        <h4 class="text-center">Speech</h4>
                         <p id='transcribedData'></p>
                     </div>
                 </div>
@@ -738,71 +742,43 @@
             //console.log('implement filter between ' + options.data.labels[startIndex] + ' and ' + options.data.labels[points[0]._index]);
             var token = $("input[name='_token']").val();
             var contentNumber = $("#ddlContentNumber").val();
-            var swFunction = document.getElementById('swFunction').checked;
-            var route = swFunction ? "{{ route('image-to-text') }}" : "{{ route('speech-to-text') }}";
+            {{--  var swFunction = document.getElementById('swFunction').checked;  --}}
+            //var route = swFunction ? "{{ route('image-to-text') }}" : "{{ route('speech-to-text') }}";
             $('#parOCRText').html("");
 
             $.ajax({
-                url: route,
+                url: "{{ route('image-to-text') }}",
                 method: 'POST',
                 data: { 'startTime': options.data.labels[startIndex], 'endTime': options.data.labels[points[0]._index], 'contentNumber': contentNumber, _token: token },
                 success: function (data) {
                     //console.log(document.getElementById('swFunction').checked);
                 
-                    if(swFunction){
-                        // Speech to text
-                        var sentenceFlag = null;
-                        var sentences = new Array();
-                        if(sentences.length > 0){
-                            sentenceFlag = data.words[0].transcript_number;
+                    var sentenceFlag = null;
+                    var sentences = new Array();
+                    if(sentences.length > 0){
+                        sentenceFlag = data.words[0].transcript_number;
+                    }
+                    var sentenceWord = '';
+                    data.speechData.forEach(function (word) {
+                        if(sentenceFlag === word.transcript_number){
+                            sentenceWord += word.word_kanji + ' ';
                         }
-                        var sentenceWord = '';
-                        data.speechData.forEach(function (word) {
-                            if(sentenceFlag === word.transcript_number){
-                                sentenceWord += word.word_kanji + ' ';
-                            }
-                            else{
-                                sentences.push(sentenceWord);
-                                sentenceWord = '';
-                                sentenceFlag = word.transcript_number;
-                            }
-                            
-                        });
-                        console.log(sentences.join("。"));
-                        $('#transcribedData').html(sentences.join("。"));
+                        else{
+                            sentences.push(sentenceWord);
+                            sentenceWord = '';
+                            sentenceFlag = word.transcript_number;
+                        }
+                        
+                    });
+                    console.log(sentences.join("。"));
+                    $('#transcribedData').html(sentences.join("。"));
 
-                        // Handwriting
-                        ocrData =  drawText(1600, 900, data.penData);
-                        var img = document.getElementById('pic');
-                        img.src = ocrData;
-                        $('#modalOCRHeader').html("OCR with B&M AI Engine (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
-                        $('#modalImage').modal('show');
-                    }
-                    else{
-                        // Speech to text
-                        var sentenceFlag = null;
-                        var sentences = new Array();
-                        if(sentences.length > 0){
-                            sentenceFlag = data.words[0].transcript_number;
-                        }
-                        var sentenceWord = '';
-                        data.words.forEach(function (word) {
-                            if(sentenceFlag === word.transcript_number){
-                                sentenceWord += word.word_kanji + ' ';
-                            }
-                            else{
-                                sentences.push(sentenceWord);
-                                sentenceWord = '';
-                                sentenceFlag = word.transcript_number;
-                            }
-                            
-                        });
-                        $('#transcribedData').html(sentences.join("。"));
-                        $('.overlay').hide();
-                        $('#modalHeader').html("Transcribed audio with B&M AI Engine (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
-                        //$('#transcribedData').html(data.kanji.join(" "));
-                        $('#modalTranscribe').modal('show');
-                    }
+                    // Handwriting
+                    ocrData =  drawText(1600, 900, data.penData);
+                    var img = document.getElementById('pic');
+                    img.src = ocrData;
+                    $('#modalOCRHeader').html("Analyzed by B&M AI Engine (" + options.data.labels[startIndex] + " - " + options.data.labels[points[0]._index] + ")");
+                    $('#modalImage').modal('show');
                 }
             });
         });

@@ -293,7 +293,7 @@ class GraphController extends Controller
         return $logs;
     }
 
-    private function getLogData($test, $contentNummber, $dateFrom, $dateTo, $ranks, $subject)
+    private function getLogData($test, $contentNummber, $subject, $ranks)
     {
         $logs = LogSchoolContentsHistoryStudent::join('log_school_contents_history_student_event', 'log_school_contents_history_student.history_number', '=', 'log_school_contents_history_student_event.history_number')
                         ->join('tbl_school_contents', 'log_school_contents_history_student.school_contents_number', '=', 'tbl_school_contents.school_contents_number')
@@ -306,11 +306,11 @@ class GraphController extends Controller
                                             tbl_school_subject.name AS subject_name, log_school_contents_history_student.student_number,  DATE_FORMAT(log_school_contents_history_student.registered_datetime, "%Y-%m-%d") AS log_registered_day 
                                         ')
                                 )
-                        ->whereBetween('log_school_contents_history_student.contents_download_datetime', [$dateFrom, $dateTo])
+                        //->whereBetween('log_school_contents_history_student.contents_download_datetime', [$dateFrom, $dateTo])
                         ->where('log_school_contents_history_student.school_contents_number', $contentNummber)
                         ->whereIn('tbl_trial_test_result.deviation_rank', $ranks)
                         ->where('tbl_trial_test_result.top_subject_number', $subject)
-                        ->where('tbl_trial_test_result.trial_test_number', $test)
+                        ->where('tbl_trial_test_result.trial_test_number', 2)
                         ->whereNotNull('log_school_contents_history_student.history_upload_datetime')
                         ->whereNotNull('log_school_contents_history_student.duration')
                         ->whereNull('log_school_contents_history_student.player3_code')
@@ -564,6 +564,9 @@ class GraphController extends Controller
                     break;
                 case 3:
                     $data = DB::select('CALL sp_growth_under(?,?,?)', array($content, $subject, implode(",",$rank)));
+                    break;
+                case 4:
+                    $data = $this->getLogData(2, $content, $subject, $rank);
                     break;
             }
             return $data;
