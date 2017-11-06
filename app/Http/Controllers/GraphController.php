@@ -60,6 +60,7 @@ class GraphController extends Controller
                                 "indexedViewCount" => [],
                                 "duration" => [],
                                 "indexedViewDensityPerCount" => [],
+                                'indexedBlockWiseForwardCount' => []
                             );
 
     /**
@@ -192,7 +193,8 @@ class GraphController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function getGraphData(Request $request){
+    public function getGraphData(Request $request)
+    {
     	if($request->ajax()){
             $logs = array();
 
@@ -211,6 +213,8 @@ class GraphController extends Controller
 
             Session::put('blocks', $blocks);
             Session::save();
+
+
 
     		return response()->json(['contentInfo'=> $this->contentInfo]);
     	}
@@ -458,6 +462,8 @@ class GraphController extends Controller
                 $this->contentInfo['indexedForwardCount'] = array();
                 $this->contentInfo['indexedRewindCount'] = array();
 
+                $forwardCountInCurrentBlock = 0;
+                //dd($durationInSecond, $blocks);
                 foreach($durationInSecond as $key => $value)
                 {
                     array_push($this->contentInfo['indexedViewCount'] , $durationInSecond[$key]['viewCount']);
@@ -466,7 +472,16 @@ class GraphController extends Controller
                     array_push($this->contentInfo['indexedRewindCount'] , $durationInSecond[$key]['rewindCount']);
                     array_push($this->contentInfo['indexedViewDensityPerCount'] , ($durationInSecond[$key]['viewCount'] / $this->contentInfo['totalViewCount']) * 100);
                     
+                    // Block wise 
+                    if (in_array($key, $blocks)) 
+                    {
+                        //dd($key, $blocks, $durationInSecond);
+                        array_push($this->contentInfo['indexedBlockWiseForwardCount'] , $forwardCountInCurrentBlock);
+                        $forwardCountInCurrentBlock = 0;
+                    }
+                    $forwardCountInCurrentBlock += abs($durationInSecond[$key]['forwardCount']);
                 }
+                //dd($this->contentInfo['indexedBlockWiseForwardCount']);
 
                 // Getting Highest peak value
                 $maxViewCount = max($this->contentInfo['indexedViewCount']);
@@ -479,11 +494,10 @@ class GraphController extends Controller
                 $maxEvents *= 1.15;
                 
                 // Preparing Block data
-                foreach($blocks as $block)
+                foreach($blocks as $key=>$block)
                 {
-                    $position = floor($block->final_frame/100);
-                    $this->contentInfo['blocksForViewDensity'][$position] = $maxViewCount;
-                    $this->contentInfo['blocksForEvents'][$position] = $maxEvents;
+                    $this->contentInfo['blocksForViewDensity'][$block] = $maxViewCount;
+                    $this->contentInfo['blocksForEvents'][$block] = $maxEvents;
                 }
             }
         }
@@ -548,7 +562,15 @@ class GraphController extends Controller
 
     private function getBlockMarks($contentNumber)
     {
-        return TblSchoolContentsBlock::where('school_contents_number', $contentNumber)->get();
+        $blocks = TblSchoolContentsBlock::where('school_contents_number', $contentNumber)->pluck('final_frame')->toArray();
+
+        foreach ($blocks as $key => $value) 
+        {
+            $blocks[$key] = (int) ($value / 100);
+        }
+
+        return $blocks;
+
     }
 
     private function getGrowth($content, $subject, $rank, $growth)
@@ -1185,11 +1207,13 @@ class GraphController extends Controller
         $vision = new VisionClient([
             'projectId' => $projectId
         ]);
+
         $image = $vision->image(file_get_contents(storage_path('app/img.png')), ['TEXT_DETECTION']);
         $result = $vision->annotate($image);
 
         $data = array();
-        foreach ((array) $result->text() as $text) {
+        foreach ((array) $result->text() as $text) 
+        {
             array_push($data, $text->description());
         }
         //dd($result);
