@@ -59,8 +59,11 @@ class GraphController extends Controller
                                 "indexedRewindCount" => [],
                                 "indexedViewCount" => [],
                                 "duration" => [],
+                                "blockEvents" => [],
                                 "indexedViewDensityPerCount" => [],
-                                'indexedBlockWiseForwardCount' => []
+                                'indexedBlockWiseForwardCount' => [],
+                                "indexedBlockWisePauseCount" => [],
+                                "indexedBlockWiseRewindCount" => []
                             );
 
     /**
@@ -209,14 +212,54 @@ class GraphController extends Controller
             //$logs = $this->getLogData($request->test, $request->contentNumber, $request->dateFrom, $request->dateTo, $request->rank, $request->subject);
             
             $blocks = $this->getBlockMarks($request->contentNumber);
+            //dd($blocks);
             $this->processData($logs, $blocks);
 
-            Session::put('blocks', $blocks);
-            Session::save();
+            // Generating Summary
 
+            #Growth
+            $growthSummary = '';
+            $growth = $request->growth;
+            switch ($growth) {
+                case ($growth == 1):
+                    $growthSummary = 'この動画は成績伸長者に、';
+                    break;
+                case ($growth == 2):
+                    $growthSummary = 'この動画は成績維持者に、';
+                    break;
+                case ($growth == 3):
+                    $growthSummary = 'この動画は成績低下者に、';
+                    break;
+                case ($growth == 4):
+                    $growthSummary = 'この動画は全体的に、';
+                    break;
+            }
 
+            $viewingTrend = '';
+            $featuredBlock = '';  
+            $forwardRatio = $this->contentInfo['forwardRatio'];
+            switch ($forwardRatio) {
+                case ($forwardRatio <= 30):
+                    $viewingTrend = '非常に丁寧に視聴されているようです。';
+                    $featuredBlock = '特にとばされているのは第'.$this->getMaxForwardRatioBlock().'ブロックです。';
+                    break;
+                case ($forwardRatio <= 50):
+                    $viewingTrend = '丁寧に視聴されているようです。';
+                    $featuredBlock = '特に丁寧に視聴されているのは第'.$this->getMaxPauseRewindRatioBlock().'ブロックです。';
+                    break;
+                case ($forwardRatio < 70):
+                    $viewingTrend = 'ある程度丁寧に視聴されているようです。';
+                    $featuredBlock = '特に丁寧に視聴されているのは第'.$this->getMaxPauseRewindRatioBlock().'ブロックです。';
+                    break;
+                case ($forwardRatio >= 70):
+                    $viewingTrend = 'とばしながら視聴されているようです。';
+                    $featuredBlock = '特に丁寧に視聴されているのは第'.$this->getMaxPauseRewindRatioBlock().'ブロックです。';
+                    break;
+            }
 
-    		return response()->json(['contentInfo'=> $this->contentInfo]);
+            $summary = $growthSummary.$viewingTrend.$featuredBlock;
+
+    		return response()->json(['contentInfo'=> $this->contentInfo, 'summary' => $summary]);
     	}
     }
 
@@ -463,6 +506,8 @@ class GraphController extends Controller
                 $this->contentInfo['indexedRewindCount'] = array();
 
                 $forwardCountInCurrentBlock = 0;
+                $pauseCountInCurrentBlock = 0;
+                $rewindCountInCurrentBlock = 0;
                 //dd($durationInSecond, $blocks);
                 foreach($durationInSecond as $key => $value)
                 {
@@ -473,13 +518,18 @@ class GraphController extends Controller
                     array_push($this->contentInfo['indexedViewDensityPerCount'] , ($durationInSecond[$key]['viewCount'] / $this->contentInfo['totalViewCount']) * 100);
                     
                     // Block wise 
-                    if (in_array($key, $blocks)) 
+                    if (in_array($key, $blocks['blockPoint'])) 
                     {
-                        //dd($key, $blocks, $durationInSecond);
-                        array_push($this->contentInfo['indexedBlockWiseForwardCount'] , $forwardCountInCurrentBlock);
+                        $duration = $blocks['duration'][array_search($key, $blocks['blockPoint'])];
+                        array_push($this->contentInfo['blockEvents'] , ['duration' => $duration, 'forwardCount' => $forwardCountInCurrentBlock, 'pauseCount' => $pauseCountInCurrentBlock, 'rewindCount' => $rewindCountInCurrentBlock]);
+                        
                         $forwardCountInCurrentBlock = 0;
+                        $pauseCountInCurrentBlock = 0;
+                        $rewindCountInCurrentBlock = 0;
                     }
                     $forwardCountInCurrentBlock += abs($durationInSecond[$key]['forwardCount']);
+                    $pauseCountInCurrentBlock += $durationInSecond[$key]['pauseCount'];
+                    $rewindCountInCurrentBlock += $durationInSecond[$key]['rewindCount'];
                 }
                 //dd($this->contentInfo['indexedBlockWiseForwardCount']);
 
@@ -494,7 +544,7 @@ class GraphController extends Controller
                 $maxEvents *= 1.15;
                 
                 // Preparing Block data
-                foreach($blocks as $key=>$block)
+                foreach($blocks['blockPoint'] as $block)
                 {
                     $this->contentInfo['blocksForViewDensity'][$block] = $maxViewCount;
                     $this->contentInfo['blocksForEvents'][$block] = $maxEvents;
@@ -562,14 +612,23 @@ class GraphController extends Controller
 
     private function getBlockMarks($contentNumber)
     {
-        $blocks = TblSchoolContentsBlock::where('school_contents_number', $contentNumber)->pluck('final_frame')->toArray();
+        $blocks = TblSchoolContentsBlock::where('school_contents_number', $contentNumber)->get();
 
-        foreach ($blocks as $key => $value) 
+        Session::put('blocks', $blocks);
+        Session::save();
+
+        $blockEndingPoints = array();
+        $duration = array();
+        //$blocks = TblSchoolContentsBlock::where('school_contents_number', $contentNumber)->pluck('final_frame')->toArray();
+
+        foreach ($blocks as $block) 
         {
-            $blocks[$key] = (int) ($value / 100);
+            //$blocks[$key] = (int) ($value / 100);
+            array_push($blockEndingPoints, (int) ($block->final_frame / 100));
+            array_push($duration, ($block->final_frame - $block->first_frame) / 100 );
         }
 
-        return $blocks;
+        return ['blockPoint' => $blockEndingPoints, 'duration' => $duration];
 
     }
 
@@ -1219,6 +1278,38 @@ class GraphController extends Controller
         //dd($result);
 
         return response()->json(['ocrText'=> $data]);
+    }
+
+    function getMaxForwardRatioBlock()
+    {
+        $forwardRatio = array();
+        foreach ($this->contentInfo['blockEvents'] as $block) 
+        {
+            if(($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) == 0 || $block['duration'] < 10)
+            {
+                array_push($forwardRatio, 0);
+                continue;
+            }
+            array_push($forwardRatio, ($block['forwardCount'] / ($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) * 100));
+        }
+
+        return array_keys($forwardRatio, max($forwardRatio))[0] + 1;
+    }
+
+    function getMaxPauseRewindRatioBlock()
+    {
+        $pauseRewindRatio = array();
+        foreach ($this->contentInfo['blockEvents'] as $block) 
+        {
+            if(($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) == 0 || $block['duration'] < 10)
+            {
+                array_push($pauseRewindRatio, 0);
+                continue;
+            }
+            array_push($pauseRewindRatio, (($block['pauseCount'] + $block['rewindCount']) / ($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) * 100));
+        }
+        
+        return array_keys($pauseRewindRatio, max($pauseRewindRatio))[0] + 1;
     }
 
 }

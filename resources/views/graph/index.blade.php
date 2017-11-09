@@ -1,8 +1,14 @@
-@extends('layouts.app') @section('title', 'LMS log data graph') @section('content') @if ($message = Session::get('success'))
+@extends('layouts.app') 
+@section('title', 'LMS log data graph') 
+@section('content') 
+
+@if ($message = Session::get('success'))
 <div class="alert alert-success">
     <p>{{ $message }}</p>
 </div>
-@endif {!! Form::open(array('id'=>'frmGraph')) !!}
+@endif 
+
+{!! Form::open(array('id'=>'frmGraph')) !!}
 <div class="col-xs-12 col-sm-4 col-md-4">
     <div class="row">
         <div class="col-xs-12 col-sm-6 col-md-6">
@@ -36,9 +42,11 @@
             <label>Rank</label>
             <br/>
             <input type="checkbox" onClick="toggle(this)" id="chkAll" /> All
-            <br/> @foreach ($ranks as $rank)
-            <input type="checkbox" class="chkRank" name="rank" value="{{$rank->rank_number}}"> {{$rank->name}}
-            <br> @endforeach
+            <br/> 
+
+            @foreach ($ranks as $rank)
+                <input type="checkbox" class="chkRank" name="rank" value="{{$rank->rank_number}}"> {{$rank->name}}<br> 
+            @endforeach
         </div>
 
         <div class="col-xs-12 col-sm-4 col-md-4">
@@ -269,6 +277,25 @@
     <i class="fa fa-refresh fa-spin"></i>
 </div>
 
+ <div class="col-xs-12 col-sm-12 col-md-12">
+    <!-- LINE CHART -->
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">Summary</h3>
+
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="box-body">
+            <h3 id="parSummary"></h3>
+        </div>
+    </div>
+</div>
+
+
 <div class="modal fade" id="modalTranscribe" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -357,6 +384,7 @@
 @endsection 
 @section('script') 
 @parent
+
 <script type="text/javascript">
     $(".select2").select2();
     $('.overlay').hide();
@@ -533,6 +561,8 @@
                     }
                 });
                 window.audioChart.update();
+
+                $('#parSummary').html(data.summary);
             },
             error: function (xhr, status, error) {
                 swal("Sorry!", JSON.parse(xhr.responseText));
@@ -995,7 +1025,7 @@
         });
     });
 
-
+    // Drawing handwriting
     function drawText( width, height, frames ) {
         //frames = {
         //    x : number;
