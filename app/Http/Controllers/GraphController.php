@@ -241,19 +241,19 @@ class GraphController extends Controller
             switch ($forwardRatio) {
                 case ($forwardRatio <= 30):
                     $viewingTrend = '非常に丁寧に視聴されているようです。';
-                    $featuredBlock = '特にとばされているのは第'.$this->getMaxForwardRatioBlock().'ブロックです。';
+                    $featuredBlock = '特にとばされているのは第'.$this->getMaxForwardRatioBlock($request->contentNumber).'ブロックです。';
                     break;
                 case ($forwardRatio <= 50):
                     $viewingTrend = '丁寧に視聴されているようです。';
-                    $featuredBlock = '特に丁寧に視聴されているのは第'.$this->getMaxPauseRewindRatioBlock().'ブロックです。';
+                    $featuredBlock = '特に丁寧に視聴されているのは第'.$this->getMaxPauseRewindRatioBlock($request->contentNumber).'ブロックです。';
                     break;
                 case ($forwardRatio < 70):
                     $viewingTrend = 'ある程度丁寧に視聴されているようです。';
-                    $featuredBlock = '特に丁寧に視聴されているのは第'.$this->getMaxPauseRewindRatioBlock().'ブロックです。';
+                    $featuredBlock = '特に丁寧に視聴されているのは第'.$this->getMaxPauseRewindRatioBlock($request->contentNumber).'ブロックです。';
                     break;
                 case ($forwardRatio >= 70):
                     $viewingTrend = 'とばしながら視聴されているようです。';
-                    $featuredBlock = '特に丁寧に視聴されているのは第'.$this->getMaxPauseRewindRatioBlock().'ブロックです。';
+                    $featuredBlock = '特に丁寧に視聴されているのは第'.$this->getMaxPauseRewindRatioBlock($request->contentNumber).'ブロックです。';
                     break;
             }
 
@@ -1280,34 +1280,42 @@ class GraphController extends Controller
         return response()->json(['ocrText'=> $data]);
     }
 
-    function getMaxForwardRatioBlock()
+    function getMaxForwardRatioBlock($contentNumber)
     {
+        $blockInfo = Session::get('blocks')->toArray();
         $forwardRatio = array();
-        foreach ($this->contentInfo['blockEvents'] as $block) 
-        {
-            if(($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) == 0 || $block['duration'] < 10)
+        for ($i=0; $i < count($this->contentInfo['blockEvents']); $i++) 
+        { 
+            $block = $this->contentInfo['blockEvents'][$i];
+            $apiSpeechWords = ApiSpeechWord::where('start_time', '>=', floor($blockInfo[$i]['first_frame']/100))->where('start_time', '<=', floor($blockInfo[$i]['final_frame']/100))->where('student_content_number', $contentNumber)->get()->toArray();
+            
+            if(($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) == 0 || $block['duration'] < 10 || count($apiSpeechWords) == 0)
             {
                 array_push($forwardRatio, 0);
                 continue;
             }
-            array_push($forwardRatio, ($block['forwardCount'] / ($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) * 100));
-        }
+            array_push($forwardRatio, (($block['pauseCount'] + $block['rewindCount']) / ($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) * 100));
+        } 
 
         return array_keys($forwardRatio, max($forwardRatio))[0] + 1;
     }
 
-    function getMaxPauseRewindRatioBlock()
+    function getMaxPauseRewindRatioBlock($contentNumber)
     {
+        $blockInfo = Session::get('blocks')->toArray();
         $pauseRewindRatio = array();
-        foreach ($this->contentInfo['blockEvents'] as $block) 
-        {
-            if(($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) == 0 || $block['duration'] < 10)
+        for ($i=0; $i < count($this->contentInfo['blockEvents']); $i++) 
+        { 
+            $block = $this->contentInfo['blockEvents'][$i];
+            $apiSpeechWords = ApiSpeechWord::where('start_time', '>=', floor($blockInfo[$i]['first_frame']/100))->where('start_time', '<=', floor($blockInfo[$i]['final_frame']/100))->where('student_content_number', $contentNumber)->get()->toArray();
+            
+            if(($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) == 0 || $block['duration'] < 10 || count($apiSpeechWords) == 0)
             {
                 array_push($pauseRewindRatio, 0);
                 continue;
             }
             array_push($pauseRewindRatio, (($block['pauseCount'] + $block['rewindCount']) / ($block['forwardCount'] + $block['pauseCount'] + $block['rewindCount']) * 100));
-        }
+        } 
         
         return array_keys($pauseRewindRatio, max($pauseRewindRatio))[0] + 1;
     }
